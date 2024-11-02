@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Stage10",
+    name: "Stage10Model",
     platforms: [
         .iOS(.v17),
         .macOS(.v12),
@@ -14,17 +14,17 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "Stage10",
-            targets: ["Stage10"]),
+            name: "Stage10Model",
+            targets: ["Stage10Model"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Stage10"),
+            name: "Stage10Model"),
         .testTarget(
-            name: "Stage10Tests",
-            dependencies: ["Stage10"]
+            name: "Stage10ModelTests",
+            dependencies: ["Stage10Model"]
         ),
     ]
 )

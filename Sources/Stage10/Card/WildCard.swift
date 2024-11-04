@@ -6,6 +6,15 @@ public struct WildCard: Equatable {
     public var isUsed: Bool {
         usedAs != nil
     }
+    public var resolvedColor: CardColor {
+        switch usedAs {
+        case .color(let cardColor):
+            cardColor
+            
+        case .number, .none:
+            color
+        }
+    }
     
     public enum UsedAs: Equatable, Sendable {
         case number(CardNumber)

@@ -20,7 +20,7 @@ extension [Card] {
     }
     
     public static func randomSet(of count: Int) -> [Card] {
-        Array([Card].deck().shuffled().prefix(10))
+        Array([Card].deck().shuffled().prefix(count))
     }
     
     public var totalPoints: Int {

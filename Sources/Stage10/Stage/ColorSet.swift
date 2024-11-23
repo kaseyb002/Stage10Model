@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ColorSet: Equatable {
+public struct ColorSet: Equatable, Codable {
     public let requiredCount: Int
     public let color: CardColor
     public private(set) var cards: [Card]

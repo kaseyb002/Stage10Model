@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CardNumber: Int, Equatable, Comparable, CaseIterable, Sendable {
+public enum CardNumber: Int, Equatable, Comparable, CaseIterable, Sendable, Codable {
     case one = 1
     case two = 2
     case three = 3

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct WildCard: Equatable {
+public struct WildCard: Equatable, Codable {
     public let color: CardColor
     public private(set) var usedAs: UsedAs?
     public var isUsed: Bool {
@@ -16,7 +16,7 @@ public struct WildCard: Equatable {
         }
     }
     
-    public enum UsedAs: Equatable, Sendable {
+    public enum UsedAs: Equatable, Sendable, Codable {
         case number(CardNumber)
         case color(CardColor)
         

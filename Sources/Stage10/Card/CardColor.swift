@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CardColor: Equatable, CaseIterable, Sendable {
+public enum CardColor: Equatable, CaseIterable, Sendable, Codable {
     case red
     case blue
     case green

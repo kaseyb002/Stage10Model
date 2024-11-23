@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PlayerHand: Equatable {
+public struct PlayerHand: Equatable, Codable {
     public var player: Player
     public var cards: [Card]
     public var completed: [CompletedRequirement]

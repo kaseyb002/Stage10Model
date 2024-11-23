@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CompletedRequirement: Equatable {
+public enum CompletedRequirement: Equatable, Codable {
     case numberSet(NumberSet)
     case colorSet(ColorSet)
     case run(Run)

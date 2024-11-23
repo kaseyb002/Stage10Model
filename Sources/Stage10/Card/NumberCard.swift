@@ -1,6 +1,6 @@
 import Foundation
 
-public struct NumberCard: Equatable, Comparable {
+public struct NumberCard: Equatable, Comparable, Codable {
     public let number: CardNumber
     public let color: CardColor
     

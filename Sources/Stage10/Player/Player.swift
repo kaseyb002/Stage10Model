@@ -1,11 +1,19 @@
 import Foundation
 
-public struct Player: Equatable {
+public struct Player: Equatable, Codable {
     public let id: String
     public var name: String
     public var imageURL: URL?
     public var points: Int
     public var stage: Stage
+    
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case imageURL = "imageUrl"
+        case points
+        case stage
+    }
     
     public init(
         id: String,

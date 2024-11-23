@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Run: Equatable {
+public struct Run: Equatable, Codable {
     public let requiredLength: Int
     public private(set) var cards: [Card]
     private var firstCard: Card { cards.first! }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Round: Equatable {
+public struct Round: Equatable, Codable {
     // MARK: - Initialized Properties
     public let id: String
     public let started: Date

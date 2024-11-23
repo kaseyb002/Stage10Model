@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Game: Equatable {
+public struct Game: Equatable, Codable {
     public let id: String
     public let started: Date
     public internal(set) var state: State
@@ -10,7 +10,7 @@ public struct Game: Equatable {
     }
     public internal(set) var ended: Date?
 
-    public enum State: Equatable {
+    public enum State: Equatable, Codable {
         case playing
         case complete(winner: Player)
         

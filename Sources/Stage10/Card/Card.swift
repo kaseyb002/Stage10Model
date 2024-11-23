@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Card: Equatable {
+public enum Card: Equatable, Codable {
     case skip
     case wild(WildCard)
     case number(NumberCard)

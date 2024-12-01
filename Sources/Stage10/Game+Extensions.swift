@@ -81,7 +81,7 @@ extension Game {
         
         return players
             .sorted(by: { $0.points < $1.points })
-            .sorted(by: { $0.stage > $1.stage })
+            .sorted(by: { $0.stage.numberValue > $1.stage.numberValue })
             .first
     }
     

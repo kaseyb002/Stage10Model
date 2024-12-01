@@ -75,6 +75,10 @@ extension Game {
     }
     
     public var currentLeader: Player? {
+        guard rounds.count > 1 else {
+            return nil
+        }
+        
         if let winner: Player {
             return winner
         }

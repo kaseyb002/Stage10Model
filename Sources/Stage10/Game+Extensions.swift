@@ -74,6 +74,17 @@ extension Game {
         }
     }
     
+    public var currentLeader: Player? {
+        if let winner: Player {
+            return winner
+        }
+        
+        return players
+            .sorted(by: { $0.points < $1.points })
+            .sorted(by: { $0.stage > $1.stage })
+            .first
+    }
+    
     public var currentRoundIndex: Int? {
         guard rounds.isEmpty == false else {
             return nil

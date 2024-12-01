@@ -36,4 +36,22 @@ public struct Round: Equatable, Codable {
             }
         }
     }
+    
+    public init(
+        id: String,
+        started: Date,
+        state: State,
+        deck: [Card],
+        discardPile: [Card],
+        playerHands: [PlayerHand],
+        ended: Date?
+    ) {
+        self.id = id
+        self.started = started
+        self.state = state
+        self.deck = deck
+        self.discardPile = discardPile
+        self.playerHands = playerHands
+        self.ended = ended
+    }
 }

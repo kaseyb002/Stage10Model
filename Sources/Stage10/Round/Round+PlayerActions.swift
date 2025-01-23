@@ -1,63 +1,183 @@
 import Foundation
 
 extension Round {
-    public mutating func discard(_ card: Card) throws {
-        guard let currentPlayerHandIndex: Int else {
-            throw Stage10Error.attemptedToActWithNoCurrentPlayer
+    public mutating func setSkip(
+        myPlayerID: String,
+        cardID: Int,
+        skipPlayerID: String
+    ) throws {
+        guard let myPlayerIndex: Int = playerHands.firstIndex(where: { $0.player.id == myPlayerID }),
+              playerHands.contains(where: { $0.player.id == skipPlayerID })
+        else {
+            throw Stage10Error.playerNotFound
         }
-        guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(of: card) else {
+        
+        guard let cardIndex: Int = playerHands[myPlayerIndex].cards.firstIndex(where: { $0.id == cardID }) else {
+            throw Stage10Error.cardDoesNotExistInPlayersHand
+        }
+        
+        switch playerHands[myPlayerIndex].cards[cardIndex].cardType {
+        case .skip:
+            playerHands[myPlayerIndex].cards[cardIndex].cardType = .skip(playerID: skipPlayerID)
+            
+        case .wild, .number:
+            throw Stage10Error.triedToSkipWithCardThatIsNotSkip
+        }
+    }
+    
+    public mutating func useWildAs(
+        myPlayerID: String,
+        cardID: Int,
+        usedAs: WildCard.UsedAs
+    ) throws {
+        guard let myPlayerIndex: Int = playerHands.firstIndex(where: { $0.player.id == myPlayerID }) else {
+            throw Stage10Error.playerNotFound
+        }
+        
+        guard let cardIndex: Int = playerHands[myPlayerIndex].cards.firstIndex(where: { $0.id == cardID }) else {
+            throw Stage10Error.cardDoesNotExistInPlayersHand
+        }
+        
+        let card: Card = playerHands[myPlayerIndex].cards[cardIndex]
+        switch card.cardType {
+        case .wild:
+            var newWild: WildCard = .init(
+                color: card.cardType.color ?? .blue,
+                usedAs: usedAs
+            )
+            playerHands[myPlayerIndex].cards[cardIndex].cardType = .wild(newWild)
+
+        case .skip, .number:
+            throw Stage10Error.notAWild
+        }
+    }
+
+    public mutating func discard(_ cardID: CardID) throws {
+        guard case .waitingForPlayerToAct(let currentPlayerHandIndex, .needsToDiscard) = state else {
+            throw Stage10Error.notWaitingForPlayerToDiscard
+        }
+        guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(where: { $0.id == cardID }) else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         let discarded: Card = playerHands[currentPlayerHandIndex].cards.remove(at: cardIndex)
         discardPile.append(discarded)
         
-        func advanceCurrentPlayer(by amount: Int) {
-            let newPlayerIndex: Int = (currentPlayerHandIndex + amount) % playerHands.count
-            self.state = .waitingForPlayerToAct(
-                playerIndex: newPlayerIndex,
-                discardState: .needsToPickUp
-            )
+        if checkIfCardsAreEmpty() {
+            return
         }
         
-        switch discarded {
-        case .skip:
-            advanceCurrentPlayer(by: 2)
+        switch discarded.cardType {
+        case .skip(let playerID):
+            guard let playerID: String else {
+                throw Stage10Error.discardedSkipWithoutSpecifyingPlayerToSkip
+            }
+            guard playerID != playerHands[currentPlayerHandIndex].player.id else {
+                throw Stage10Error.triedToSkipYourself
+            }
+            skipQueue[playerID, default: .zero] += 1
             
         case .wild, .number:
-            advanceCurrentPlayer(by: 1)
+            break
         }
         
-        checkIfCardsAreEmpty()
+        advanceCurrentPlayer(currentPlayerHandIndex: currentPlayerHandIndex)
     }
     
-    public mutating func complete(
-        requirement: CompletedRequirement,
-        with cards: [Card]
+    private mutating func advanceCurrentPlayer(
+        currentPlayerHandIndex: Int
+    ) {
+        let newPlayerIndex: Int = (currentPlayerHandIndex + 1) % playerHands.count
+        if var skipPlayerCount: Int = skipQueue[playerHands[newPlayerIndex].player.id],
+           skipPlayerCount > .zero {
+            skipPlayerCount -= 1
+            skipQueue[playerHands[newPlayerIndex].player.id] = skipPlayerCount
+            advanceCurrentPlayer(currentPlayerHandIndex: newPlayerIndex)
+            return
+        }
+        
+        state = .waitingForPlayerToAct(
+            playerIndex: newPlayerIndex,
+            discardState: .needsToPickUp
+        )
+    }
+    
+    private mutating func takePlayerCards(by ids: [CardID]) throws -> [Card] {
+        guard let currentPlayerHandIndex else {
+            throw Stage10Error.notWaitingForPlayerToAct
+        }
+        
+        func removeCard(by id: CardID) throws -> Card {
+            guard let index: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(where: { id == $0.id }) else {
+                throw Stage10Error.cardDoesNotExistInPlayersHand
+            }
+            return playerHands[currentPlayerHandIndex].cards.remove(at: index)
+        }
+        
+        return try ids.map { try removeCard(by: $0) }
+    }
+    
+    public mutating func completeStage(
+        form: CompleteStageForm
     ) throws {
         guard let currentPlayerHandIndex: Int else {
-            throw Stage10Error.attemptedToActWithNoCurrentPlayer
+            throw Stage10Error.notWaitingForPlayerToAct
         }
         guard playerHands[currentPlayerHandIndex].isRequirementsComplete == false else {
             throw Stage10Error.requirementsAlreadyCompleted
         }
-        // verify player actually has these cards
-        guard playerHands[currentPlayerHandIndex].cards.contains(other: cards) else {
-            throw Stage10Error.cardDoesNotExistInPlayersHand
+        var requirements: [StageRequirement] = form.stage.requirements
+        guard requirements.count == form.completionAttempts.count else {
+            throw Stage10Error.completionAttemptsDoesNotMatchRequirements
         }
-        let requirements: [StageRequirement] = playerHands[currentPlayerHandIndex].player.stage.requirements
-        let completed: [CompletedRequirement] = playerHands[currentPlayerHandIndex].completed
-        var remaining: [StageRequirement] = requirements
-        for completedRequirement in completed {
-            guard let index: Int = requirements.firstIndex(of: completedRequirement.stageRequirement) else {
-                continue
+        var completedRequirements: [CompletedRequirement] = []
+
+        for attempt in form.completionAttempts {
+            let cards: [Card] = try takePlayerCards(by: attempt.cardIDs)
+            let completedRequirement: CompletedRequirement
+            switch attempt.requirement {
+            case .numberSet(let count):
+                let numberSet: NumberSet = try .init(
+                    requiredCount: count,
+                    number: cards.first?.cardType.numberValue ?? .one,
+                    cards: cards
+                )
+                completedRequirement = .init(
+                    requirementType: .numberSet(numberSet)
+                )
+                
+            case .run(let length):
+                let run: Run = try .init(
+                    requiredLength: length,
+                    cards: cards
+                )
+                completedRequirement = .init(
+                    requirementType: .run(run)
+                )
+                
+            case .colorSet(let count):
+                let colorSet: ColorSet = try .init(
+                    requiredCount: count,
+                    color: cards.first?.cardType.color ?? .blue,
+                    cards: cards
+                )
+                completedRequirement = .init(
+                    requirementType: .colorSet(colorSet)
+                )
             }
-            remaining.remove(at: index)
+            
+            guard let index: Int = requirements.firstIndex(where: { $0 == attempt.requirement }) else {
+                throw Stage10Error.requirementDoesNotExist
+            }
+            requirements.remove(at: index)
+            completedRequirements.append(completedRequirement)
         }
-        guard remaining.contains(requirement.stageRequirement) else {
-            throw Stage10Error.requirementDoesNotExist
+        
+        guard requirements.isEmpty else {
+            throw Stage10Error.didNotCompleteAllRequirementsForStage
         }
-        playerHands[currentPlayerHandIndex].completed.append(requirement)
-        playerHands[currentPlayerHandIndex].cards.remove(other: cards)
+        
+        playerHands[currentPlayerHandIndex].completed = completedRequirements
+        
         checkIfCardsAreEmpty()
     }
     
@@ -68,13 +188,17 @@ extension Round {
         ) = state else {
             throw Stage10Error.notWaitingForPlayerToPickUp
         }
-        let card: Card =
+        let card: Card
         if fromDiscardPile,
            let topCardOfDiscardPile: Card = discardPile.last,
-           topCardOfDiscardPile != .skip {
-            discardPile.removeLast()
+           topCardOfDiscardPile.cardType.isSkip == false {
+            card = discardPile.removeLast()
         } else {
-            deck.removeLast()
+            guard deck.isEmpty == false else {
+                endRoundBecauseDeckIsEmpty()
+                return
+            }
+            card = deck.removeLast()
         }
         playerHands[currentPlayerHandIndex].cards.append(card)
         state = .waitingForPlayerToAct(
@@ -83,85 +207,82 @@ extension Round {
         )
     }
     
-    public mutating func add(
-        card: Card,
-        to completedRequirement: CompletedRequirement,
-        belongingToPlayerID playerID: String,
-        runPosition: Run.AddPosition?
+    public mutating func addCard(
+        form: AddCardForm
     ) throws {
         guard let currentPlayerHandIndex: Int else {
             throw Stage10Error.attemptedToActWithNoCurrentPlayer
         }
-        guard playerHands[currentPlayerHandIndex].cards.contains(card) else {
+        guard let card: Card = playerHands[currentPlayerHandIndex].cards
+            .first(where: { $0.id == form.cardID })
+        else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
-        guard let playerHandIndex: Int = playerHands.firstIndex(where: {
-            playerID == $0.player.id
-        }) else {
+        guard let belongingToPlayerIndex: Int = playerHands
+            .firstIndex(where: { $0.player.id == form.belongingToPlayerID })
+        else {
             throw Stage10Error.playerNotFound
         }
-        guard let completedRequirementIndex: Int = playerHands[playerHandIndex].completed.firstIndex(of: completedRequirement) else {
+        guard let completedRequirementIndex: Int = playerHands[belongingToPlayerIndex]
+            .completed.firstIndex(where: { $0.id == form.completedRequirementID })
+        else {
             throw Stage10Error.completedRequirementDoesNotExist
         }
-        let updatedCompletedRequirement: CompletedRequirement
-        switch playerHands[playerHandIndex].completed[completedRequirementIndex] {
+        
+        var updatedCompletedRequirement: CompletedRequirement = playerHands[belongingToPlayerIndex].completed[completedRequirementIndex]
+        switch playerHands[belongingToPlayerIndex].completed[completedRequirementIndex].requirementType {
         case .numberSet(var numberSet):
-            switch card {
-            case .skip:
-                throw FailedObjectiveError.invalidCard
-                
-            case .wild(let wildCard):
-                try numberSet.add(wildCard: wildCard)
-                
-            case .number(let numberCard):
-                try numberSet.add(numberCard: numberCard)
-            }
-            updatedCompletedRequirement = .numberSet(numberSet)
+            try numberSet.add(card: card)
+            updatedCompletedRequirement.requirementType = .numberSet(numberSet)
             
         case .colorSet(var colorSet):
-            switch card {
-            case .skip:
-                throw FailedObjectiveError.invalidCard
-                
-            case .wild(let wildCard):
-                try colorSet.add(wildCard: wildCard)
-                
-            case .number(let numberCard):
-                try colorSet.add(numberCard: numberCard)
-            }
-            updatedCompletedRequirement = .colorSet(colorSet)
+            try colorSet.add(card: card)
+            updatedCompletedRequirement.requirementType = .colorSet(colorSet)
             
         case .run(var run):
-            switch card {
-            case .skip:
-                throw FailedObjectiveError.invalidCard
-                
-            case .wild(let wildCard):
-                guard let runPosition: Run.AddPosition else {
-                    throw FailedObjectiveError.missingAddPositionForRun
-                }
-                try run.add(wildCard: wildCard, position: runPosition)
-                
-            case .number(let numberCard):
-                try run.add(numberCard: numberCard)
+            switch form.attempt {
+            case .addToRun(let position):
+                try run.add(card: card, position: position)
+                updatedCompletedRequirement.requirementType = .run(run)
+
+            case .addToSet:
+                throw FailedObjectiveError.missingAddPositionForRun
             }
-            updatedCompletedRequirement = .run(run)
         }
-        playerHands[playerHandIndex].completed[completedRequirementIndex] = updatedCompletedRequirement
-        if let index: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(of: card) {
-            playerHands[currentPlayerHandIndex].cards.remove(at: index)
-        }
+        playerHands[belongingToPlayerIndex].completed[completedRequirementIndex] = updatedCompletedRequirement
+        playerHands[currentPlayerHandIndex].cards.removeAll(where: { form.cardID == $0.id })
+        checkIfCardsAreEmpty()
     }
     
-    public mutating func checkIfCardsAreEmpty() {
+    @discardableResult
+    private mutating func checkIfCardsAreEmpty() -> Bool {
         let aPlayerHasNoMoreCards: Bool = playerHands.contains(where: { $0.cards.isEmpty })
         guard aPlayerHasNoMoreCards || deck.isEmpty else {
-            return
+            return false
         }
+        addUpPlayerPoints()
+        if let winner: PlayerHand = playerHands
+            .filter({ $0.player.stage == .ten })
+            .filter({ $0.isRequirementsComplete })
+            .sorted(by: { $0.player.points < $1.player.points })
+            .first { // i dont care about ties
+            state = .gameComplete(winner: winner.player)
+        } else {
+            state = .roundComplete
+        }
+        ended = .now
+        return true
+    }
+    
+    private mutating func addUpPlayerPoints() {
         for (index, playerHand) in playerHands.enumerated() {
             playerHands[index].player.points = playerHand.cards.totalPoints
         }
-        self.state = .roundComplete
-        self.ended = .now
+    }
+    
+    private mutating func endRoundBecauseDeckIsEmpty() {
+        addUpPlayerPoints()
+        state = .roundComplete
+        ended = .now
     }
 }

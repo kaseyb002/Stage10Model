@@ -10,13 +10,15 @@ public struct Round: Equatable, Codable {
     public internal(set) var deck: [Card]
     public internal(set) var discardPile: [Card]
     public internal(set) var playerHands: [PlayerHand]
+    public internal(set) var skipQueue: Dictionary<String, Int> = [:]
     
     // MARK: - Results
     public internal(set) var ended: Date?
     
-    public enum State: Hashable, Codable {
+    public enum State: Equatable, Codable {
         case waitingForPlayerToAct(playerIndex: Int, discardState: DiscardState)
         case roundComplete
+        case gameComplete(winner: Player)
         
         public enum DiscardState: Hashable, Codable {
             case needsToPickUp
@@ -33,6 +35,9 @@ public struct Round: Equatable, Codable {
                 
             case .roundComplete:
                 "Round complete"
+                
+            case .gameComplete(let winner):
+                "\(winner) won the game."
             }
         }
     }
@@ -44,6 +49,7 @@ public struct Round: Equatable, Codable {
         deck: [Card],
         discardPile: [Card],
         playerHands: [PlayerHand],
+        skipQueue: Dictionary<String, Int> = [:],
         ended: Date?
     ) {
         self.id = id
@@ -52,6 +58,7 @@ public struct Round: Equatable, Codable {
         self.deck = deck
         self.discardPile = discardPile
         self.playerHands = playerHands
+        self.skipQueue = skipQueue
         self.ended = ended
     }
 }

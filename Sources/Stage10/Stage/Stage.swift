@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Stage: Equatable, CaseIterable, Codable {
+public enum Stage: Hashable, CaseIterable, Codable {
     case one
     case two
     case three
@@ -12,7 +12,7 @@ public enum Stage: Equatable, CaseIterable, Codable {
     case nine
     case ten
     
-    public var next: Stage?{
+    public var next: Stage? {
         switch self {
         case .one: .two
         case .two: .three

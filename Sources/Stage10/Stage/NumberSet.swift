@@ -20,20 +20,9 @@ public struct NumberSet: Equatable, Codable {
     }
     
     public mutating func add(
-        numberCard: NumberCard
+        card: Card
     ) throws {
-        guard numberCard.number == number else {
-            throw FailedObjectiveError.invalidCard
-        }
-        cards.append(.number(numberCard))
-    }
-    
-    public mutating func add(
-        wildCard: WildCard
-    ) throws {
-        var updatedWildCard: WildCard = wildCard
-        try updatedWildCard.use(as: .number(number))
-        cards.append(.wild(updatedWildCard))
+        try cards.add(card: card, number: number)
     }
 
     private static func validated(
@@ -46,29 +35,36 @@ public struct NumberSet: Equatable, Codable {
         }
         var validCards: [Card] = []
         for card in cards {
-            switch card {
-            case .skip:
-                continue
-                
-            case .wild(let wild):
-                if wild.isUsed {
-                    continue
-                }
-                var updatedWild: WildCard = wild
-                try updatedWild.use(as: .number(number))
-                validCards.append(.wild(updatedWild))
-                
-            case .number(let numberCard):
-                if numberCard.number == number {
-                    validCards.append(.number(numberCard))
-                }
-            }
+            try validCards.add(card: card, number: number)
         }
-        
         guard validCards.count >= requiredCount else {
             throw FailedObjectiveError.setNotBigEnough(countNeeded: requiredCount - validCards.count)
         }
-        
         return validCards
+    }
+}
+
+private extension [Card] {
+    mutating func add(
+        card: Card,
+        number: CardNumber
+    ) throws {
+        switch card.cardType {
+        case .skip:
+            throw FailedObjectiveError.invalidCard
+            
+        case .wild(let wild):
+            var updatedWild: WildCard = wild
+            try updatedWild.use(as: .number(number))
+            var updatedCard: Card = card
+            updatedCard.cardType = .wild(updatedWild)
+            append(updatedCard)
+            
+        case .number(let numberCard):
+            guard numberCard.number == number else {
+                throw FailedObjectiveError.invalidCard
+            }
+            append(card)
+        }
     }
 }

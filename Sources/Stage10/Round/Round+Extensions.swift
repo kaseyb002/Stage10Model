@@ -6,7 +6,7 @@ extension Round {
         case .waitingForPlayerToAct(let playerIndex, _):
             return playerIndex
             
-        case .roundComplete:
+        case .roundComplete, .gameComplete:
             return nil
         }
     }
@@ -23,8 +23,8 @@ extension Round {
         State: \(state.logValue)
         Deck remaining: \(deck.count)
         Discard pile count: \(discardPile.count)
-        Discard top card: \(discardPile.last?.logValue ?? "None")
-        Current player: \(currentPlayerHand?.player.name ?? "None")
+        Discard top card: \(discardPile.last?.cardType.logValue ?? "None")
+        Current player: \(currentPlayerHand?.player.name ?? "None") \(currentPlayerHand?.player.id ?? "")
         
         \(playerHands.logValue)
         """

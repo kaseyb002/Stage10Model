@@ -2,7 +2,7 @@ import Foundation
 
 extension CompletedRequirement {
     public var logValue: String {
-        switch self {
+        switch requirementType {
         case .numberSet(let numberSet):
             "Number Set - \(numberSet.cards.sortedForDisplay.logValue)"
             

@@ -2,19 +2,44 @@ import Foundation
 
 extension [Card] {
     public static func deck() -> [Card] {
+        var index: Int = .zero
         let numbers: [Card] = CardColor.allCases.map { color in
             CardNumber.allCases.map { number in
-                Card.number(.init(number: number, color: color))
+                defer {
+                    index += 1
+                }
+                return Card(
+                    id: index,
+                    cardType: .number(NumberCard(number: number, color: color))
+                )
             }
         }.flatMap { $0 }
         let wilds: [Card] = CardColor.allCases.map { color in
-            Card.wild(WildCard(color: color))
+            defer {
+                index += 1
+            }
+            return Card(
+                id: index,
+                cardType: .wild(WildCard(color: color))
+            )
         }
         let skips: [Card] = [
-            .skip,
-            .skip,
-            .skip,
-            .skip,
+            Card(
+                id: index,
+                cardType: .skip(playerID: nil)
+            ),
+            Card(
+                id: index + 1,
+                cardType: .skip(playerID: nil)
+            ),
+            Card(
+                id: index + 2,
+                cardType: .skip(playerID: nil)
+            ),
+            Card(
+                id: index + 3,
+                cardType: .skip(playerID: nil)
+            ),
         ]
         return numbers + numbers + wilds + wilds + skips
     }
@@ -23,14 +48,27 @@ extension [Card] {
         Array([Card].deck().shuffled().prefix(count))
     }
     
+    public static func allSkips(count: Int) -> [Card] {
+        var cards: [Card] = []
+        for id in 0 ..< count {
+            cards.append(
+                .init(
+                    id: id,
+                    cardType: .skip(playerID: nil)
+                )
+            )
+        }
+        return cards
+    }
+
     public var totalPoints: Int {
-        reduce(.zero, { $0 + $1.points })
+        reduce(.zero, { $0 + $1.cardType.points })
     }
     
     public var sortedForDisplay: [Card] {
         sorted(by: {
             if $0.sortDisplayValue == $1.sortDisplayValue {
-                switch ($0, $1) {
+                switch ($0.cardType, $1.cardType) {
                 case (.number(let lhs), .number(let rhs)):
                     return lhs.color.sortDisplayValue < rhs.color.sortDisplayValue
                 default:
@@ -43,9 +81,8 @@ extension [Card] {
     }
     
     public var logValue: String {
-        map { $0.logValue }.joined(separator: ", ")
+        map { $0.cardType.logValue }.joined(separator: ", ")
     }
-    
     
     public func contains(other cards: [Card]) -> Bool {
         var theseCards: [Card] = self
@@ -72,7 +109,7 @@ extension [Card] {
 
 private extension Card {
     var sortDisplayValue: Int {
-        switch self {
+        switch cardType {
         case .skip:
             14
             

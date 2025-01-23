@@ -2,10 +2,26 @@ import Foundation
 
 public struct WildCard: Equatable, Codable {
     public let color: CardColor
-    public private(set) var usedAs: UsedAs?
+    public var usedAs: UsedAs?
+    
     public var isUsed: Bool {
         usedAs != nil
     }
+    
+    public var isUsedAsNumber: Bool {
+        switch usedAs {
+        case .number: false
+        case .color, nil: true
+        }
+    }
+    
+    public var isUsedAsColor: Bool {
+        switch usedAs {
+        case .number, nil: false
+        case .color: true
+        }
+    }
+    
     public var resolvedColor: CardColor {
         switch usedAs {
         case .color(let cardColor):
@@ -50,13 +66,6 @@ public struct WildCard: Equatable, Codable {
     }
     
     public mutating func use(as usedAs: UsedAs) throws {
-        if let alreadyUsedAs: UsedAs = self.usedAs {
-            throw WildCardError.alreadyUsedAs(alreadyUsedAs)
-        }
         self.usedAs = usedAs
-    }
-    
-    public enum WildCardError: Error {
-        case alreadyUsedAs(UsedAs)
     }
 }

@@ -12,7 +12,9 @@ extension Round {
             throw Stage10Error.playerNotFound
         }
         
-        guard let cardIndex: Int = playerHands[myPlayerIndex].cards.firstIndex(where: { $0.id == cardID }) else {
+        guard let cardIndex: Int = playerHands[myPlayerIndex].cards
+            .firstIndex(where: { $0.id == cardID })
+        else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         
@@ -30,11 +32,15 @@ extension Round {
         cardID: Int,
         usedAs: WildCard.UsedAs
     ) throws {
-        guard let myPlayerIndex: Int = playerHands.firstIndex(where: { $0.player.id == myPlayerID }) else {
+        guard let myPlayerIndex: Int = playerHands
+            .firstIndex(where: { $0.player.id == myPlayerID })
+        else {
             throw Stage10Error.playerNotFound
         }
         
-        guard let cardIndex: Int = playerHands[myPlayerIndex].cards.firstIndex(where: { $0.id == cardID }) else {
+        guard let cardIndex: Int = playerHands[myPlayerIndex].cards
+            .firstIndex(where: { $0.id == cardID })
+        else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         
@@ -56,7 +62,9 @@ extension Round {
         guard case .waitingForPlayerToAct(let currentPlayerHandIndex, .needsToDiscard) = state else {
             throw Stage10Error.notWaitingForPlayerToDiscard
         }
-        guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(where: { $0.id == cardID }) else {
+        guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards
+            .firstIndex(where: { $0.id == cardID })
+        else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         let discarded: Card = playerHands[currentPlayerHandIndex].cards.remove(at: cardIndex)
@@ -107,7 +115,9 @@ extension Round {
         }
         
         func removeCard(by id: CardID) throws -> Card {
-            guard let index: Int = playerHands[currentPlayerHandIndex].cards.firstIndex(where: { id == $0.id }) else {
+            guard let index: Int = playerHands[currentPlayerHandIndex].cards
+                .firstIndex(where: { id == $0.id })
+            else {
                 throw Stage10Error.cardDoesNotExistInPlayersHand
             }
             return playerHands[currentPlayerHandIndex].cards.remove(at: index)

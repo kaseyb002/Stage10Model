@@ -3,8 +3,8 @@ import Foundation
 extension Round {
     public var currentPlayerHandIndex: Int? {
         switch state {
-        case .waitingForPlayerToAct(let playerIndex, _):
-            return playerIndex
+        case .waitingForPlayerToAct(let playerID, _):
+            return playerHands.firstIndex(where: { $0.player.id == playerID })
             
         case .roundComplete, .gameComplete:
             return nil

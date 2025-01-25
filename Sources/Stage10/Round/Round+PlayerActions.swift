@@ -59,7 +59,9 @@ extension Round {
     }
 
     public mutating func discard(_ cardID: CardID) throws {
-        guard case .waitingForPlayerToAct(let currentPlayerHandIndex, .needsToDiscard) = state else {
+        guard case .waitingForPlayerToAct(_, .needsToDiscard) = state,
+              let currentPlayerHandIndex: Int
+        else {
             throw Stage10Error.notWaitingForPlayerToDiscard
         }
         guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards
@@ -104,7 +106,7 @@ extension Round {
         }
         
         state = .waitingForPlayerToAct(
-            playerIndex: newPlayerIndex,
+            playerID: playerHands[newPlayerIndex].player.id,
             discardState: .needsToPickUp
         )
     }
@@ -192,10 +194,9 @@ extension Round {
     }
     
     public mutating func pickUpCard(fromDiscardPile: Bool) throws {
-        guard case .waitingForPlayerToAct(
-            let currentPlayerHandIndex,
-            discardState: .needsToPickUp
-        ) = state else {
+        guard case .waitingForPlayerToAct(let currentPlayerID, discardState: .needsToPickUp) = state,
+              let currentPlayerHandIndex: Int
+        else {
             throw Stage10Error.notWaitingForPlayerToPickUp
         }
         let card: Card
@@ -212,7 +213,7 @@ extension Round {
         }
         playerHands[currentPlayerHandIndex].cards.append(card)
         state = .waitingForPlayerToAct(
-            playerIndex: currentPlayerHandIndex,
+            playerID: currentPlayerID,
             discardState: .needsToDiscard
         )
     }

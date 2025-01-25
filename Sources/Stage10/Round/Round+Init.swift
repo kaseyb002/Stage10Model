@@ -23,7 +23,10 @@ extension Round {
         let firstDiscard: Card = deck.removeLast()
         self.deck = deck
         self.discardPile = [firstDiscard]
-        self.state = .waitingForPlayerToAct(playerIndex: .zero, discardState: .needsToPickUp)
+        self.state = .waitingForPlayerToAct(
+            playerID: players.first!.id,
+            discardState: .needsToPickUp
+        )
     }
     
     public static func dealCards(

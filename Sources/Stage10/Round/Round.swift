@@ -16,7 +16,7 @@ public struct Round: Equatable, Codable {
     public internal(set) var ended: Date?
     
     public enum State: Equatable, Codable {
-        case waitingForPlayerToAct(playerIndex: Int, discardState: DiscardState)
+        case waitingForPlayerToAct(playerID: String, discardState: DiscardState)
         case roundComplete
         case gameComplete(winner: Player)
         
@@ -27,11 +27,11 @@ public struct Round: Equatable, Codable {
         
         public var logValue: String {
             switch self {
-            case .waitingForPlayerToAct(let playerIndex, discardState: .needsToPickUp):
-                "Waiting for player \(playerIndex) to pick up card"
+            case .waitingForPlayerToAct(let playerID, discardState: .needsToPickUp):
+                "Waiting for player \(playerID) to pick up card"
                 
-            case .waitingForPlayerToAct(let playerIndex, discardState: .needsToDiscard):
-                "Waiting for player \(playerIndex) to discard"
+            case .waitingForPlayerToAct(let playerID, discardState: .needsToDiscard):
+                "Waiting for player \(playerID) to discard"
                 
             case .roundComplete:
                 "Round complete"

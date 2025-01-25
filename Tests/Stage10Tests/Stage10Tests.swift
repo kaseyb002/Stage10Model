@@ -19,7 +19,7 @@ import Testing
         ]
     )
     
-    #expect(throws: FailedObjectiveError.insufficientCards) {
+    #expect(throws: Stage10Error.insufficientCards) {
         _ = try Run(
             requiredLength: 8,
             cards: [
@@ -34,7 +34,7 @@ import Testing
         )
     }
     
-    #expect(throws: FailedObjectiveError.isNotValidNextCard) {
+    #expect(throws: Stage10Error.isNotValidNextCard) {
         _ = try Run(
             requiredLength: 5,
             cards: [
@@ -75,7 +75,7 @@ import Testing
         ]
     )
     
-    #expect(throws: FailedObjectiveError.isNotValidNextCard) {
+    #expect(throws: Stage10Error.isNotValidNextCard) {
         _ = try Run(
             requiredLength: 5,
             cards: [

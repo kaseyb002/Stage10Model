@@ -47,7 +47,7 @@ extension Round {
         let card: Card = playerHands[myPlayerIndex].cards[cardIndex]
         switch card.cardType {
         case .wild:
-            var newWild: WildCard = .init(
+            let newWild: WildCard = .init(
                 color: card.cardType.color ?? .blue,
                 usedAs: usedAs
             )
@@ -256,7 +256,7 @@ extension Round {
                 updatedCompletedRequirement.requirementType = .run(run)
 
             case .addToSet:
-                throw FailedObjectiveError.missingAddPositionForRun
+                throw Stage10Error.missingAddPositionForRun
             }
         }
         playerHands[belongingToPlayerIndex].completed[completedRequirementIndex] = updatedCompletedRequirement

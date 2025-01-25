@@ -9,10 +9,10 @@ public struct Run: Equatable, Codable {
         cards: [Card]
     ) throws {
         if requiredLength < 4 {
-            throw FailedObjectiveError.requiredLengthBelowMin
+            throw Stage10Error.requiredLengthBelowMin
         }
         if requiredLength > 9 {
-            throw FailedObjectiveError.requiredLengthAboveMax
+            throw Stage10Error.requiredLengthAboveMax
         }
         self.requiredLength = requiredLength
         self.cards = try Self.validated(
@@ -41,11 +41,11 @@ public struct Run: Equatable, Codable {
         requiredLength: Int
     ) throws -> [Card] {
         guard cards.count >= requiredLength else {
-            throw FailedObjectiveError.insufficientCards
+            throw Stage10Error.insufficientCards
         }
         let sortedCards: [Card] = cards.sorted(by: { ($0.cardType.numberValue ?? .max) < ($1.cardType.numberValue ?? .max) })
         guard let firstCard: Card = sortedCards.first else {
-            throw FailedObjectiveError.invalidCard
+            throw Stage10Error.invalidCard
         }
         var validCards: [Card] = [firstCard]
         for card in sortedCards.suffix(from: 1) {
@@ -62,23 +62,23 @@ private extension [Card] {
     ) throws {
         switch card.cardType {
         case .skip:
-            throw FailedObjectiveError.invalidCard
+            throw Stage10Error.invalidCard
             
         case .wild(let wildCard):
             var updatedWild: WildCard = wildCard
             switch position {
             case .beginning:
                 guard let nextMinValidCardNumber else {
-                    throw FailedObjectiveError.runReachedEnd
+                    throw Stage10Error.runReachedEnd
                 }
                 switch wildCard.usedAs {
                 case .number(let cardNumber):
                     guard cardNumber == nextMinValidCardNumber else {
-                        throw FailedObjectiveError.invalidCard
+                        throw Stage10Error.invalidCard
                     }
                     
                 case .color:
-                    throw FailedObjectiveError.invalidCard
+                    throw Stage10Error.invalidCard
 
                 case nil:
                     try updatedWild.use(as: .number(nextMinValidCardNumber))
@@ -89,16 +89,16 @@ private extension [Card] {
                 
             case .end:
                 guard let nextMaxValidCardNumber else {
-                    throw FailedObjectiveError.runReachedEnd
+                    throw Stage10Error.runReachedEnd
                 }
                 switch wildCard.usedAs {
                 case .number(let cardNumber):
                     guard cardNumber == nextMaxValidCardNumber else {
-                        throw FailedObjectiveError.invalidCard
+                        throw Stage10Error.invalidCard
                     }
                     
                 case .color:
-                    throw FailedObjectiveError.invalidCard
+                    throw Stage10Error.invalidCard
 
                 case nil:
                     try updatedWild.use(as: .number(nextMaxValidCardNumber))
@@ -112,13 +112,13 @@ private extension [Card] {
             switch position {
             case .beginning:
                 guard numberCard.number == nextMinValidCardNumber else {
-                    throw FailedObjectiveError.isNotValidNextCard
+                    throw Stage10Error.isNotValidNextCard
                 }
                 insert(card, at: .zero)
                 
             case .end:
                 guard numberCard.number == nextMaxValidCardNumber else {
-                    throw FailedObjectiveError.isNotValidNextCard
+                    throw Stage10Error.isNotValidNextCard
                 }
                 append(card)
             }

@@ -31,14 +31,14 @@ public struct NumberSet: Equatable, Codable {
         requiredCount: Int
     ) throws -> [Card] {
         if cards.count < requiredCount {
-            throw FailedObjectiveError.insufficientCards
+            throw Stage10Error.insufficientCards
         }
         var validCards: [Card] = []
         for card in cards {
             try validCards.add(card: card, number: number)
         }
         guard validCards.count >= requiredCount else {
-            throw FailedObjectiveError.setNotBigEnough(countNeeded: requiredCount - validCards.count)
+            throw Stage10Error.setNotBigEnough(countNeeded: requiredCount - validCards.count)
         }
         return validCards
     }
@@ -51,7 +51,7 @@ private extension [Card] {
     ) throws {
         switch card.cardType {
         case .skip:
-            throw FailedObjectiveError.invalidCard
+            throw Stage10Error.invalidCard
             
         case .wild(let wild):
             var updatedWild: WildCard = wild
@@ -62,7 +62,7 @@ private extension [Card] {
             
         case .number(let numberCard):
             guard numberCard.number == number else {
-                throw FailedObjectiveError.invalidCard
+                throw Stage10Error.invalidCard
             }
             append(card)
         }

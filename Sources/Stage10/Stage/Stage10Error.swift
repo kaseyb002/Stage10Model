@@ -12,9 +12,6 @@ public enum Stage10Error: Error, Equatable {
     case didNotCompleteAllRequirementsForStage
     case requirementDoesNotExist
     case roundIsIncomplete
-    case gameIsAlreadyComplete
-    case gameIsIncomplete
-    case gameHasNoRounds
     case playerNotFound
     case completedRequirementDoesNotExist
     case completionAttemptsDoesNotMatchRequirements
@@ -23,4 +20,14 @@ public enum Stage10Error: Error, Equatable {
     case triedToSkipWithCardThatsAlreadyBeenUsed
     case triedToSkipWithCardThatIsNotSkip
     case notAWild
+    case insufficientCards
+    case runNotLongEnough(countNeeded: Int)
+    case setNotBigEnough(countNeeded: Int)
+    case requiredLengthBelowMin
+    case requiredLengthAboveMax
+    case isNotValidNextCard
+    case runReachedEnd
+    case invalidCard
+    case cardsDoNotMakeRun
+    case missingAddPositionForRun
 }

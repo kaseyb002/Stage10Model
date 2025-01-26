@@ -24,7 +24,7 @@ extension Round {
         self.deck = deck
         self.discardPile = [firstDiscard]
         self.state = .waitingForPlayerToAct(
-            playerID: players.first!.id,
+            playerId: players.first!.id,
             discardState: .needsToPickUp
         )
     }

@@ -106,7 +106,7 @@ extension Round {
         }
         
         state = .waitingForPlayerToAct(
-            playerID: playerHands[newPlayerIndex].player.id,
+            playerId: playerHands[newPlayerIndex].player.id,
             discardState: .needsToPickUp
         )
     }
@@ -213,7 +213,7 @@ extension Round {
         }
         playerHands[currentPlayerHandIndex].cards.append(card)
         state = .waitingForPlayerToAct(
-            playerID: currentPlayerID,
+            playerId: currentPlayerID,
             discardState: .needsToDiscard
         )
     }

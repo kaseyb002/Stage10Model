@@ -23,8 +23,11 @@ let package = Package(
         .target(
             name: "Stage10Model"),
         .testTarget(
-            name: "Stage10ModelTests",
-            dependencies: ["Stage10Model"]
+            name: "Stage10Tests",
+            dependencies: ["Stage10Model"],
+            resources: [
+                .process("Resources"),
+            ]
         ),
     ]
 )

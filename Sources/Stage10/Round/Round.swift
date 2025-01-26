@@ -16,7 +16,7 @@ public struct Round: Equatable, Codable {
     public internal(set) var ended: Date?
     
     public enum State: Equatable, Codable {
-        case waitingForPlayerToAct(playerID: String, discardState: DiscardState)
+        case waitingForPlayerToAct(playerId: String, discardState: DiscardState)
         case roundComplete
         case gameComplete(winner: Player)
         

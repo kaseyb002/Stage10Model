@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Stage10Model
 
@@ -470,4 +471,30 @@ import Testing
 //    print(game.rounds[0].logValue)
 //    print(game.rounds[1].logValue)
 //    print(game.logValue)
+}
+
+@Test func parseRoundJSON() throws {
+    let data: Data = try loadJSON(fromFile: "round")
+    let decoder: JSONDecoder = .init()
+    decoder.dateDecodingStrategy = .iso8601
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let round: Round = try decoder.decode(
+        Round.self,
+        from: data
+    )
+    print(round.logValue)
+}
+
+private func loadJSON(fromFile name: String) throws -> Data {
+    guard let url: URL = Bundle.module.url(forResource: name, withExtension: "json") else {
+        throw FileError.jsonFileNotFound(name: name)
+    }
+    return try Data(
+        contentsOf: url,
+        options: .mappedIfSafe
+    )
+}
+
+private enum FileError: Error {
+    case jsonFileNotFound(name: String)
 }

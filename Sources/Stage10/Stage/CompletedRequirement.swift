@@ -30,4 +30,36 @@ public struct CompletedRequirement: Equatable, Codable {
         self.id = id
         self.requirementType = requirementType
     }
+    
+    public init(
+        id: String = UUID().uuidString,
+        requirement: StageRequirement,
+        cards: [Card]
+    ) throws {
+        self.id = id
+        switch requirement {
+        case .numberSet(let count):
+            let numberSet: NumberSet = try .init(
+                requiredCount: count,
+                number: cards.first?.cardType.numberValue ?? .one,
+                cards: cards
+            )
+            self.requirementType = .numberSet(numberSet)
+            
+        case .run(let length):
+            let run: Run = try .init(
+                requiredLength: length,
+                cards: cards
+            )
+            self.requirementType = .run(run)
+            
+        case .colorSet(let count):
+            let colorSet: ColorSet = try .init(
+                requiredCount: count,
+                color: cards.first?.cardType.color ?? .blue,
+                cards: cards
+            )
+            self.requirementType = .colorSet(colorSet)
+        }
+    }
 }

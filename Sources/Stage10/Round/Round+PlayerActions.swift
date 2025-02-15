@@ -137,7 +137,7 @@ extension Round {
         guard playerHands[currentPlayerHandIndex].isRequirementsComplete == false else {
             throw Stage10Error.requirementsAlreadyCompleted
         }
-        var requirements: [StageRequirement] = form.stage.requirements
+        var requirements: [StageRequirement] = playerHands[currentPlayerHandIndex].player.stage.requirements
         guard requirements.count == form.completionAttempts.count else {
             throw Stage10Error.completionAttemptsDoesNotMatchRequirements
         }
@@ -145,38 +145,10 @@ extension Round {
 
         for attempt in form.completionAttempts {
             let cards: [Card] = try takePlayerCards(by: attempt.cardIDs)
-            let completedRequirement: CompletedRequirement
-            switch attempt.requirement {
-            case .numberSet(let count):
-                let numberSet: NumberSet = try .init(
-                    requiredCount: count,
-                    number: cards.first?.cardType.numberValue ?? .one,
-                    cards: cards
-                )
-                completedRequirement = .init(
-                    requirementType: .numberSet(numberSet)
-                )
-                
-            case .run(let length):
-                let run: Run = try .init(
-                    requiredLength: length,
-                    cards: cards
-                )
-                completedRequirement = .init(
-                    requirementType: .run(run)
-                )
-                
-            case .colorSet(let count):
-                let colorSet: ColorSet = try .init(
-                    requiredCount: count,
-                    color: cards.first?.cardType.color ?? .blue,
-                    cards: cards
-                )
-                completedRequirement = .init(
-                    requirementType: .colorSet(colorSet)
-                )
-            }
-            
+            let completedRequirement: CompletedRequirement = try .init(
+                requirement: attempt.requirement,
+                cards: cards
+            )
             guard let index: Int = requirements.firstIndex(where: { $0 == attempt.requirement }) else {
                 throw Stage10Error.requirementDoesNotExist
             }

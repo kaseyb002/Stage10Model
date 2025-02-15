@@ -1,7 +1,6 @@
 import Foundation
 
 public struct CompleteStageForm: Equatable, Codable {
-    public let stage: Stage
     public let completionAttempts: [CompletionAttempt]
     
     public struct CompletionAttempt: Equatable, Codable {
@@ -18,10 +17,8 @@ public struct CompleteStageForm: Equatable, Codable {
     }
     
     public init(
-        stage: Stage,
         completionAttempts: [CompletionAttempt]
     ) {
-        self.stage = stage
         self.completionAttempts = completionAttempts
     }
 }

@@ -3,7 +3,9 @@ import Testing
 @testable import Stage10Model
 
 @Test func deckSize() async throws {
-    #expect([Card].deck().count == 108)
+    let deck: [Card] = .deck()
+    #expect(deck.count == 108)
+    #expect(Set(deck.map { $0.id }).count == 108)
 }
 
 @Test func run() async throws {

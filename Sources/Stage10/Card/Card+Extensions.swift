@@ -2,46 +2,45 @@ import Foundation
 
 extension [Card] {
     public static func deck() -> [Card] {
-        var index: Int = .zero
+        let placeholderIndex: Int = .zero
         let numbers: [Card] = CardColor.allCases.map { color in
             CardNumber.allCases.map { number in
-                defer {
-                    index += 1
-                }
                 return Card(
-                    id: index,
+                    id: placeholderIndex,
                     cardType: .number(NumberCard(number: number, color: color))
                 )
             }
         }.flatMap { $0 }
         let wilds: [Card] = CardColor.allCases.map { color in
-            defer {
-                index += 1
-            }
             return Card(
-                id: index,
+                id: placeholderIndex,
                 cardType: .wild(WildCard(color: color))
             )
         }
         let skips: [Card] = [
             Card(
-                id: index,
+                id: placeholderIndex,
                 cardType: .skip(playerID: nil)
             ),
             Card(
-                id: index + 1,
+                id: placeholderIndex,
                 cardType: .skip(playerID: nil)
             ),
             Card(
-                id: index + 2,
+                id: placeholderIndex,
                 cardType: .skip(playerID: nil)
             ),
             Card(
-                id: index + 3,
+                id: placeholderIndex,
                 cardType: .skip(playerID: nil)
             ),
         ]
-        return numbers + numbers + wilds + wilds + skips
+        return (numbers + numbers + wilds + wilds + skips).enumerated().map { index, card in
+            Card(
+                id: index,
+                cardType: card.cardType
+            )
+        }
     }
     
     public static func randomSet(of count: Int) -> [Card] {

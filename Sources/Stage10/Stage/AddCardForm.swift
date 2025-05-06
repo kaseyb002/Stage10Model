@@ -10,4 +10,16 @@ public struct AddCardForm: Equatable, Codable {
         case addToSet
         case addToRun(position: Run.AddPosition)
     }
+    
+    public init(
+        cardID: CardID,
+        completedRequirementID: String,
+        belongingToPlayerID: String,
+        attempt: Attempt
+    ) {
+        self.cardID = cardID
+        self.completedRequirementID = completedRequirementID
+        self.belongingToPlayerID = belongingToPlayerID
+        self.attempt = attempt
+    }
 }

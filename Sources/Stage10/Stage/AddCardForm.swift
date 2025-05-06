@@ -11,6 +11,13 @@ public struct AddCardForm: Equatable, Codable {
         case addToRun(position: Run.AddPosition)
     }
     
+    public enum CodingKeys: String, CodingKey {
+        case cardID = "cardId"
+        case completedRequirementID = "completedRequirementId"
+        case belongingToPlayerID = "belongingToPlayerId"
+        case attempt
+    }
+    
     public init(
         cardID: CardID,
         completedRequirementID: String,

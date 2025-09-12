@@ -198,7 +198,6 @@ import Testing
         ]
     )
     var form: CompleteStageForm = .init(
-        stage: .one,
         completionAttempts: [
             .init(
                 requirement: .numberSet(count: 3),
@@ -214,7 +213,6 @@ import Testing
     try round.pickUpCard(fromDiscardPile: false)
     try round.discard(1006)
     form = .init(
-        stage: .one,
         completionAttempts: [
             .init(
                 requirement: .numberSet(count: 3),

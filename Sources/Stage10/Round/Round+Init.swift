@@ -29,7 +29,7 @@ extension Round {
         )
     }
     
-    public static func dealCards(
+    private static func dealCards(
         to players: [Player],
         deck: inout [Card]
     ) -> [PlayerHand] {

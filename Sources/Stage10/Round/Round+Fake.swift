@@ -2,22 +2,21 @@ import Foundation
 
 extension Round {
     public static func fake(
-        id: String,
-        started: Date,
-        state: State,
-        deck: [Card],
-        discardPile: [Card],
-        playerHands: [PlayerHand],
-        ended: Date?
-    ) -> Round {
-        .init(
+        id: String = UUID().uuidString,
+        started: Date = .init(),
+        cookedDeck: [Card]? = nil,
+        players: [Player] = [
+            .fake(),
+            .fake(),
+            .fake(),
+            .fake(),
+        ]
+    ) throws -> Round{
+        try self.init(
             id: id,
             started: started,
-            state: state,
-            deck: deck,
-            discardPile: discardPile,
-            playerHands: playerHands,
-            ended: ended
+            cookedDeck: cookedDeck,
+            players: players
         )
     }
 }

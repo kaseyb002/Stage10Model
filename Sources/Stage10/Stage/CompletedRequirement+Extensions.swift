@@ -15,6 +15,21 @@ extension CompletedRequirement {
     }
 }
 
+extension CompletedRequirement.RequirementType {
+    public var cards: [Card] {
+        switch self {
+        case .numberSet(let numberSet):
+            numberSet.cards
+            
+        case .colorSet(let colorSet):
+            colorSet.cards
+            
+        case .run(let run):
+            run.cards
+        }
+    }
+}
+
 extension [CompletedRequirement] {
     public var logValue: String {
         var text = ""

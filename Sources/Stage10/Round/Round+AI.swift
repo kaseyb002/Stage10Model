@@ -3,8 +3,7 @@ import Foundation
 extension Round {
     public func makeAIMoveIfNeeded() -> Round {
         guard case .waitingForPlayerToAct(_, let discardState) = self.state,
-              let currentPlayerHand = self.currentPlayerHand,
-              currentPlayerHand.player.name.lowercased().contains("ai") || currentPlayerHand.player.name.lowercased().contains("bot")
+              let currentPlayerHand: PlayerHand = self.currentPlayerHand
         else {
             return self
         }

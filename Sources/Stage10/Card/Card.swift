@@ -82,6 +82,13 @@ public struct Card: Equatable, Codable {
             }
         }
         
+        public var isWild: Bool {
+            switch self {
+            case .wild: true
+            case .skip, .number: false
+            }
+        }
+        
         public var logValue: String {
             switch self {
             case .skip:

@@ -29,6 +29,35 @@ extension Round {
         )
     }
     
+    /// returns `nil` if game is complete
+    public static func nextRound(
+        previous: Round
+    ) throws -> Round? {
+        struct GameIsComplete: Error {}
+        
+        func nextRoundPlayers() throws -> [Player] {
+            var players: [Player] = previous.playerHands.map(\.player)
+            for i in 0 ..< players.count {
+                if previous.playerHands[i].isRequirementsComplete {
+                    if let nextStage: Stage = players[i].stage.next {
+                        players[i].stage = nextStage
+                    } else {
+                        throw GameIsComplete()
+                    }
+                }
+            }
+            return players
+        }
+        
+        do {
+            return try .init(players: nextRoundPlayers())
+        } catch is GameIsComplete {
+            return nil
+        } catch {
+            throw error
+        }
+    }
+    
     private static func dealCards(
         to players: [Player],
         deck: inout [Card]

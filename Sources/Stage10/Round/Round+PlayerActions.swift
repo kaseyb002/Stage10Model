@@ -259,7 +259,7 @@ extension Round {
     
     private mutating func addUpPlayerPoints() {
         for (index, playerHand) in playerHands.enumerated() {
-            playerHands[index].player.points = playerHand.cards.totalPoints
+            playerHands[index].player.points += playerHand.cards.totalPoints
         }
     }
     

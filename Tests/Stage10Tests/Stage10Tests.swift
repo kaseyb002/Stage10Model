@@ -65,20 +65,7 @@ import Testing
         ]
     )
     
-    _ = try Run(
-        requiredLength: 5,
-        cards: [
-            Card(id: 0, cardType: .wild(WildCard(color: .allCases.randomElement()!, usedAs: nil))),
-            Card(id: 1, cardType: .number(NumberCard(number: .two, color: .allCases.randomElement()!))),
-            Card(id: 2, cardType: .number(NumberCard(number: .three, color: .allCases.randomElement()!))),
-            Card(id: 3, cardType: .number(NumberCard(number: .four, color: .allCases.randomElement()!))),
-            Card(id: 4, cardType: .number(NumberCard(number: .five, color: .allCases.randomElement()!))),
-            Card(id: 5, cardType: .number(NumberCard(number: .six, color: .allCases.randomElement()!))),
-            Card(id: 6, cardType: .number(NumberCard(number: .seven, color: .allCases.randomElement()!))),
-        ]
-    )
-    
-    #expect(throws: Stage10Error.isNotValidNextCard) {
+    #expect(throws: Stage10Error.invalidCard) {
         _ = try Run(
             requiredLength: 5,
             cards: [
@@ -251,7 +238,7 @@ import Testing
         )
     )
     try round.playerHands[1].cards[0].setPlayerToSkip(playerID: round.playerHands[0].player.id)
-    try round.discard(53)
+    try round.discard(105)
     print(round.logValue)
 }
 

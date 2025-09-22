@@ -40,15 +40,13 @@ public struct Run: Equatable, Codable {
         cards: [Card],
         requiredLength: Int
     ) throws -> [Card] {
-        guard cards.count >= requiredLength else {
+        guard cards.count >= requiredLength,
+              let firstCard: Card = cards.first
+        else {
             throw Stage10Error.insufficientCards
         }
-        let sortedCards: [Card] = cards.sorted(by: { ($0.cardType.numberValue ?? .max) < ($1.cardType.numberValue ?? .max) })
-        guard let firstCard: Card = sortedCards.first else {
-            throw Stage10Error.invalidCard
-        }
         var validCards: [Card] = [firstCard]
-        for card in sortedCards.suffix(from: 1) {
+        for card in cards.suffix(from: 1) {
             try validCards.add(card: card, position: .end)
         }
         return cards

@@ -160,8 +160,116 @@ extension Round {
         
         // If we can complete all requirements, do it
         if completionAttempts.count == requirements.count {
+            // First, set the usedAs property for any wild cards that will be used
+            try setWildCardsUsedAs(for: completionAttempts)
+            
             let form = CompleteStageForm(completionAttempts: completionAttempts)
             try completeStage(form: form)
+        }
+    }
+    
+    private mutating func setWildCardsUsedAs(for completionAttempts: [CompleteStageForm.CompletionAttempt]) throws {
+        guard let currentPlayerHand = self.currentPlayerHand else { return }
+        
+        for attempt in completionAttempts {
+            switch attempt.requirement {
+            case .numberSet(_):
+                // Find the target number from non-wild cards
+                var targetNumber: CardNumber?
+                for cardID in attempt.cardIDs {
+                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                       let number = card.cardType.numberValue {
+                        targetNumber = number
+                        break
+                    }
+                }
+                
+                // If we found a target number, set wild cards to use that number
+                if let targetNumber = targetNumber {
+                    for cardID in attempt.cardIDs {
+                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                           case .wild = card.cardType {
+                            try useWildAs(
+                                myPlayerID: currentPlayerHand.player.id,
+                                cardID: cardID,
+                                usedAs: .number(targetNumber)
+                            )
+                        }
+                    }
+                }
+                
+            case .colorSet(_):
+                // Find the target color from non-wild cards
+                var targetColor: CardColor?
+                for cardID in attempt.cardIDs {
+                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                       let color = card.cardType.color {
+                        targetColor = color
+                        break
+                    }
+                }
+                
+                // If we found a target color, set wild cards to use that color
+                if let targetColor = targetColor {
+                    for cardID in attempt.cardIDs {
+                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                           case .wild = card.cardType {
+                            try useWildAs(
+                                myPlayerID: currentPlayerHand.player.id,
+                                cardID: cardID,
+                                usedAs: .color(targetColor)
+                            )
+                        }
+                    }
+                }
+                
+            case .run(let length):
+                // For runs, we need to determine the position of each wild card
+                // and set it to the appropriate number
+                try setWildCardsForRun(attempt: attempt, length: length)
+            }
+        }
+    }
+    
+    private mutating func setWildCardsForRun(attempt: CompleteStageForm.CompletionAttempt, length: Int) throws {
+        guard let currentPlayerHand = self.currentPlayerHand else { return }
+        
+        // Create a sorted array of cards to determine positions
+        var cards: [Card] = []
+        for cardID in attempt.cardIDs {
+            if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }) {
+                cards.append(card)
+            }
+        }
+        
+        // Sort cards to determine their positions in the run
+        cards.sort { card1, card2 in
+            let num1 = card1.cardType.numberValue?.rawValue ?? Int.max
+            let num2 = card2.cardType.numberValue?.rawValue ?? Int.max
+            return num1 < num2
+        }
+        
+        // Find the starting number for this run
+        var startNumber: CardNumber?
+        for card in cards {
+            if let number = card.cardType.numberValue {
+                startNumber = number
+                break
+            }
+        }
+        
+        guard let startNumber = startNumber else { return }
+        
+        // Set wild cards to appropriate numbers based on their position
+        for (index, card) in cards.enumerated() {
+            if case .wild = card.cardType {
+                let targetNumber = CardNumber(rawValue: startNumber.rawValue + index) ?? startNumber
+                try useWildAs(
+                    myPlayerID: currentPlayerHand.player.id,
+                    cardID: card.id,
+                    usedAs: .number(targetNumber)
+                )
+            }
         }
     }
     

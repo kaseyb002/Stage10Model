@@ -196,6 +196,9 @@ extension Round {
         guard let currentPlayerHandIndex: Int else {
             throw Stage10Error.attemptedToActWithNoCurrentPlayer
         }
+        guard playerHands[currentPlayerHandIndex].isRequirementsComplete else {
+            throw Stage10Error.didNotCompleteAllRequirementsForStage
+        }
         guard let card: Card = playerHands[currentPlayerHandIndex].cards
             .first(where: { $0.id == form.cardID })
         else {

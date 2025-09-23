@@ -75,11 +75,14 @@ extension Round {
         }
         
         // Check if card can be added to any player's completed requirements
-        for otherPlayerHand in playerHands {
-            if otherPlayerHand.player.id != playerHand.player.id {
-                for completedReq in otherPlayerHand.completed {
-                    if canAddCardToCompletedRequirement(card, completedRequirement: completedReq) {
-                        return true
+        // Only if current player has completed their own stage
+        if playerHand.isRequirementsComplete {
+            for otherPlayerHand in playerHands {
+                if otherPlayerHand.player.id != playerHand.player.id {
+                    for completedReq in otherPlayerHand.completed {
+                        if canAddCardToCompletedRequirement(card, completedRequirement: completedReq) {
+                            return true
+                        }
                     }
                 }
             }
@@ -297,6 +300,9 @@ extension Round {
     private mutating func attemptToAddCardsToOthers() throws {
         guard let currentPlayerHand = self.currentPlayerHand else { return }
         
+        // Only try to add cards to others if current player has completed their stage
+        guard currentPlayerHand.isRequirementsComplete else { return }
+        
         // Try to add cards to other players' completed requirements
         for card in currentPlayerHand.cards {
             for otherPlayerHand in playerHands {
@@ -381,11 +387,14 @@ extension Round {
             }
             
             // Check if card can be added to others' completed requirements
-            for otherPlayerHand in playerHands {
-                if otherPlayerHand.player.id != playerHand.player.id {
-                    for completedReq in otherPlayerHand.completed {
-                        if canAddCardToCompletedRequirement(card, completedRequirement: completedReq) {
-                            score += 10
+            // Only if current player has completed their own stage
+            if playerHand.isRequirementsComplete {
+                for otherPlayerHand in playerHands {
+                    if otherPlayerHand.player.id != playerHand.player.id {
+                        for completedReq in otherPlayerHand.completed {
+                            if canAddCardToCompletedRequirement(card, completedRequirement: completedReq) {
+                                score += 10
+                            }
                         }
                     }
                 }

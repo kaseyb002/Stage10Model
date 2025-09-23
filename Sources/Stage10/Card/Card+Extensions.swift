@@ -110,13 +110,19 @@ private extension Card {
     var sortDisplayValue: Int {
         switch cardType {
         case .skip:
-            14
+            return 14
             
-        case .wild:
-            13
+        case .wild(let wildCard):
+            switch wildCard.usedAs {
+            case .color, .none:
+                return 13
+                
+            case .number(let cardNumber):
+                return cardNumber.rawValue
+            }
             
         case .number(let numberCard):
-            numberCard.number.rawValue
+            return numberCard.number.rawValue
         }
     }
 }

@@ -193,10 +193,14 @@ extension Round {
         for (_, groupCards) in numberGroups {
             let totalAvailable = groupCards.count + wilds.count
             if totalAvailable >= count {
-                var selectedCards = Array(groupCards.prefix(min(count, groupCards.count)))
-                let wildsNeeded = count - selectedCards.count
+                var selectedCards: [Card] = []
+                let nonWildCardsNeeded = min(count, groupCards.count)
+                let wildsNeeded = count - nonWildCardsNeeded
                 
-                // Add wild cards (they'll be set when the requirement is created)
+                // Add non-wild cards first so the initializer can determine the correct number
+                selectedCards.append(contentsOf: Array(groupCards.prefix(nonWildCardsNeeded)))
+                
+                // Add wild cards last
                 for i in 0..<min(wildsNeeded, wilds.count) {
                     selectedCards.append(wilds[i])
                 }
@@ -228,10 +232,14 @@ extension Round {
         for (_, groupCards) in colorGroups {
             let totalAvailable = groupCards.count + wilds.count
             if totalAvailable >= count {
-                var selectedCards = Array(groupCards.prefix(min(count, groupCards.count)))
-                let wildsNeeded = count - selectedCards.count
+                var selectedCards: [Card] = []
+                let nonWildCardsNeeded = min(count, groupCards.count)
+                let wildsNeeded = count - nonWildCardsNeeded
                 
-                // Add wild cards (they'll be set when the requirement is created)
+                // Add non-wild cards first so the initializer can determine the correct color
+                selectedCards.append(contentsOf: Array(groupCards.prefix(nonWildCardsNeeded)))
+                
+                // Add wild cards last
                 for i in 0..<min(wildsNeeded, wilds.count) {
                     selectedCards.append(wilds[i])
                 }

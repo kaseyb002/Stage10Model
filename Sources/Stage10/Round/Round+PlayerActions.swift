@@ -242,6 +242,19 @@ extension Round {
     
     @discardableResult
     private mutating func checkIfCardsAreEmpty() -> Bool {
+        // first check if player has already won
+        let playersOnLastStageCount: Int = playerHands
+            .filter({ $0.player.stage == .ten })
+            .count
+        if playersOnLastStageCount == 1,
+           let winner: PlayerHand = playerHands
+               .filter({ $0.player.stage == .ten })
+               .filter({ $0.isRequirementsComplete })
+               .first {
+            state = .gameComplete(winner: winner.player)
+            return true
+        }
+        
         let aPlayerHasNoMoreCards: Bool = playerHands.contains(where: { $0.cards.isEmpty })
         guard aPlayerHasNoMoreCards || deck.isEmpty else {
             return false

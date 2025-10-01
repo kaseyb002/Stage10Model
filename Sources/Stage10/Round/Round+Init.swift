@@ -20,7 +20,12 @@ extension Round {
             to: players,
             deck: &deck
         )
-        let firstDiscard: Card = deck.removeLast()
+        var firstDiscard: Card = deck.removeLast()
+        while firstDiscard.cardType.isSkip {
+            deck.append(firstDiscard)
+            deck.shuffle()
+            firstDiscard = deck.removeLast()
+        }
         self.deck = deck
         self.discardPile = [firstDiscard]
         self.state = .waitingForPlayerToAct(

@@ -32,10 +32,10 @@ extension Round {
             // This ensures the game doesn't get stuck
             do {
                 switch discardState {
-                case .needsToDiscard:
+                case .needsToPickUp:
                     try updatedRound.pickUpCard(fromDiscardPile: false)
 
-                case .needsToPickUp:
+                case .needsToDiscard:
                     if let firstCardID = updatedRound.currentPlayerHand?.cards.first?.id {
                         try updatedRound.discard(firstCardID)
                     }

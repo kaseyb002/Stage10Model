@@ -63,7 +63,7 @@ extension Round {
         // if possible, if the next player has their requirements complete, do not discard
         // a card that the player could add to his own completed requirements or another players compelted requirements
         
-        guard let currentPlayerHandIndex = currentPlayerHandIndex else {
+        guard currentPlayerHandIndex != nil else {
             throw Stage10Error.notWaitingForPlayerToAct
         }
         
@@ -73,22 +73,31 @@ extension Round {
         // Rule 2: Prioritize discarding skip cards first
         let skipCards = availableCards.filter { $0.cardType.isSkip }
         if !skipCards.isEmpty {
-            // Find the best skip card to discard
-            let bestSkipCard = findBestSkipCardToDiscard(skipCards: skipCards, currentPlayerHandIndex: currentPlayerHandIndex)
-            
-            if let cardToDiscard = bestSkipCard {
-                // If it's an unconfigured skip, set a target
-                if case .skip(nil) = cardToDiscard.cardType {
-                    if let targetPlayerID = findBestSkipTarget() {
-                        try setSkip(
-                            myPlayerID: playerHand.player.id,
-                            cardID: cardToDiscard.id,
-                            skipPlayerID: targetPlayerID
-                        )
+            // Try to find a skip card we can safely discard
+            for skipCard in skipCards {
+                if case .skip(let targetPlayerID) = skipCard.cardType {
+                    if targetPlayerID != nil {
+                        // Skip card already has a target, safe to discard
+                        try discard(skipCard.id)
+                        return
                     }
                 }
-                try discard(cardToDiscard.id)
-                return
+            }
+            
+            // If no skip cards have targets, try to configure one
+            if let unconfiguredSkip = skipCards.first(where: { 
+                if case .skip(nil) = $0.cardType { return true }
+                return false
+            }) {
+                if let targetPlayerID = findBestSkipTarget() {
+                    try setSkip(
+                        myPlayerID: playerHand.player.id,
+                        cardID: unconfiguredSkip.id,
+                        skipPlayerID: targetPlayerID
+                    )
+                    try discard(unconfiguredSkip.id)
+                    return
+                }
             }
         }
         

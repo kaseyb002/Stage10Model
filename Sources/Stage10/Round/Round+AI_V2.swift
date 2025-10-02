@@ -31,12 +31,22 @@ extension Round {
             // If AI encounters an error, just pick up from deck and discard first card
             // This ensures the game doesn't get stuck
             do {
-                if discardState == .needsToPickUp {
+                switch discardState {
+                case .needsToPickUp:
                     try updatedRound.pickUpCard(fromDiscardPile: false)
-                }
-                if case .waitingForPlayerToAct(_, .needsToDiscard) = updatedRound.state,
-                   let firstCardID = updatedRound.currentPlayerHand?.cards.first?.id {
-                    try updatedRound.discard(firstCardID)
+                    
+                case .needsToDiscard:
+                    if let firstCard: Card = updatedRound.currentPlayerHand?.cards.first,
+                       let targetPlayerID: String = findBestSkipTarget() {
+                        if firstCard.cardType.isSkip {
+                            try updatedRound.setSkip(
+                                myPlayerID: currentPlayerHand.player.id,
+                                cardID: firstCard.id,
+                                skipPlayerID: targetPlayerID
+                            )
+                        }
+                        try updatedRound.discard(firstCard.id)
+                    }
                 }
             } catch {
                 // Last resort - return original round if everything fails

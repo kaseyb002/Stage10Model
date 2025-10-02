@@ -36,8 +36,16 @@ extension Round {
                     try updatedRound.pickUpCard(fromDiscardPile: false)
 
                 case .needsToDiscard:
-                    if let firstCardID = updatedRound.currentPlayerHand?.cards.first?.id {
-                        try updatedRound.discard(firstCardID)
+                    if let firstCard: Card = updatedRound.currentPlayerHand?.cards.first,
+                       let targetPlayerID: String = findBestSkipTarget() {
+                        if firstCard.cardType.isSkip {
+                            try updatedRound.setSkip(
+                                myPlayerID: currentPlayerHand.player.id,
+                                cardID: firstCard.id,
+                                skipPlayerID: targetPlayerID
+                            )
+                        }
+                        try updatedRound.discard(firstCard.id)
                     }
                 }
             } catch {

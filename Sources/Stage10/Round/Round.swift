@@ -13,6 +13,7 @@ public struct Round: Equatable, Codable {
     public internal(set) var skipQueue: Dictionary<String, Int> = [:]
     
     // MARK: - Results
+    public internal(set) var log: Log = .init()
     public internal(set) var ended: Date?
     
     public enum State: Equatable, Codable {

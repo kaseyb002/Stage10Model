@@ -64,6 +64,7 @@ extension Round {
         else {
             throw Stage10Error.notWaitingForPlayerToDiscard
         }
+        let currentPlayerID: String = playerHands[currentPlayerHandIndex].player.id
         guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards
             .firstIndex(where: { $0.id == cardID })
         else {
@@ -89,6 +90,13 @@ extension Round {
         case .wild, .number:
             break
         }
+        
+        log.actions.append(
+            .init(
+                playerID: currentPlayerID,
+                decision: .discard(cardId: cardID)
+            )
+        )
         
         advanceCurrentPlayer(currentPlayerHandIndex: currentPlayerHandIndex)
     }
@@ -162,6 +170,13 @@ extension Round {
         
         playerHands[currentPlayerHandIndex].completed = completedRequirements
         
+        log.actions.append(
+            .init(
+                playerID: playerHands[currentPlayerHandIndex].player.id,
+                decision: .laydown(completedRequirements.map { .init(completedRequirement: $0) })
+            )
+        )
+        
         checkIfCardsAreEmpty()
     }
     
@@ -184,6 +199,12 @@ extension Round {
             card = deck.removeLast()
         }
         playerHands[currentPlayerHandIndex].cards.append(card)
+        log.actions.append(
+            .init(
+                playerID: playerHands[currentPlayerHandIndex].player.id,
+                decision: .pickup(cardId: card.id, fromDiscardPile: fromDiscardPile)
+            )
+        )
         state = .waitingForPlayerToAct(
             playerId: currentPlayerID,
             discardState: .needsToDiscard
@@ -216,6 +237,7 @@ extension Round {
         }
         
         var updatedCompletedRequirement: CompletedRequirement = playerHands[belongingToPlayerIndex].completed[completedRequirementIndex]
+        let originalCompletedRequirement: CompletedRequirement = updatedCompletedRequirement
         switch playerHands[belongingToPlayerIndex].completed[completedRequirementIndex].requirementType {
         case .numberSet(var numberSet):
             try numberSet.add(card: card)
@@ -237,6 +259,12 @@ extension Round {
         }
         playerHands[belongingToPlayerIndex].completed[completedRequirementIndex] = updatedCompletedRequirement
         playerHands[currentPlayerHandIndex].cards.removeAll(where: { form.cardID == $0.id })
+        log.actions.append(
+            .init(
+                playerID: playerHands[currentPlayerHandIndex].player.id,
+                decision: .addCard(id: card.id, toCompletedRequirement: .init(completedRequirement: originalCompletedRequirement))
+            )
+        )
         checkIfCardsAreEmpty()
     }
     

@@ -13,19 +13,19 @@ extension Round {
         do {
             switch discardState {
             case .needsToPickUp:
-        try updatedRound.makeAIPickupDecision(playerHand: currentPlayerHand)
+                try updatedRound.makeAIPickupDecision(playerHand: currentPlayerHand)
                 
             case .needsToDiscard:
                 // Try to complete stage first if possible
                 if !currentPlayerHand.isRequirementsComplete {
-        try updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
+                    try updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
                 }
                 
                 // Try to add cards to other players' completed requirements
-        try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
+                try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
                 
                 // Finally discard a card
-        try updatedRound.makeAIDiscardDecision(playerHand: currentPlayerHand)
+                try updatedRound.makeAIDiscardDecision(playerHand: currentPlayerHand)
             }
         } catch {
             // If AI encounters an error, just pick up from deck and discard first card
@@ -95,7 +95,7 @@ extension Round {
             }
             
             // If no skip cards have targets, try to configure one
-            if let unconfiguredSkip = skipCards.first(where: { 
+            if let unconfiguredSkip = skipCards.first(where: {
                 if case .skip(nil) = $0.cardType { return true }
                 return false
             }) {
@@ -447,8 +447,8 @@ extension Round {
             
             // Add number cards for the run
             for number in bestRun.numbers {
-                if let card = availableCards.first(where: { 
-                    $0.cardType.numberValue?.rawValue == number 
+                if let card = availableCards.first(where: {
+                    $0.cardType.numberValue?.rawValue == number
                 }) {
                     selectedCards.append(card)
                 }
@@ -761,10 +761,10 @@ extension Round {
         switch topDiscardCard.cardType {
         case .skip:
             try pickUpCard(fromDiscardPile: false)
-
+            
         case .wild:
             try pickUpCard(fromDiscardPile: true)
-
+            
         case .number(let numberCard):
             if playerHand.isRequirementsComplete == false {
                 for requirement in playerHand.player.stage.requirements {
@@ -819,7 +819,7 @@ extension Round {
             }
             // Adding this card, would we have enough for the set?
             return (matchingCards.count + 1) >= count
-
+            
         case .run(let length):
             // Collect all unique numbers in hand (excluding the new card)
             var numbersInHand = Set<Int>()
@@ -840,7 +840,7 @@ extension Round {
                 wildcardsAvailable: wildcardCount,
                 requiredLength: length
             )
-
+            
         case .colorSet(let count):
             // Count how many cards match this color (including wilds as wildcards)
             let matchingCards = availableCards.filter { card in

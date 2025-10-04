@@ -29,4 +29,11 @@ extension Round {
         \(playerHands.logValue)
         """
     }
+    
+    public var allCards: [Card] {
+        deck
+        + discardPile
+        + playerHands.flatMap(\.cards)
+        + playerHands.flatMap(\.completed).flatMap(\.requirementType.cards)
+    }
 }

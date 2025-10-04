@@ -12,15 +12,18 @@ extension Round {
             throw Stage10Error.playerNotFound
         }
         
-        guard let cardIndex: Int = playerHands[myPlayerIndex].cards
-            .firstIndex(where: { $0.id == cardID })
-        else {
+        guard playerHands[myPlayerIndex].cards.contains(cardID) else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         
-        switch playerHands[myPlayerIndex].cards[cardIndex].cardType {
+        guard var card = cardsMap[cardID] else {
+            throw Stage10Error.cardDoesNotExistInPlayersHand
+        }
+        
+        switch card.cardType {
         case .skip:
-            playerHands[myPlayerIndex].cards[cardIndex].cardType = .skip(playerID: skipPlayerID)
+            card.cardType = .skip(playerID: skipPlayerID)
+            cardsMap[cardID] = card
             
         case .wild, .number:
             throw Stage10Error.triedToSkipWithCardThatIsNotSkip
@@ -38,20 +41,22 @@ extension Round {
             throw Stage10Error.playerNotFound
         }
         
-        guard let cardIndex: Int = playerHands[myPlayerIndex].cards
-            .firstIndex(where: { $0.id == cardID })
-        else {
+        guard playerHands[myPlayerIndex].cards.contains(cardID) else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
         
-        let card: Card = playerHands[myPlayerIndex].cards[cardIndex]
+        guard var card = cardsMap[cardID] else {
+            throw Stage10Error.cardDoesNotExistInPlayersHand
+        }
+        
         switch card.cardType {
         case .wild:
             let newWild: WildCard = .init(
                 color: card.cardType.color ?? .blue,
                 usedAs: usedAs
             )
-            playerHands[myPlayerIndex].cards[cardIndex].cardType = .wild(newWild)
+            card.cardType = .wild(newWild)
+            cardsMap[cardID] = card
 
         case .skip, .number:
             throw Stage10Error.notAWild
@@ -66,12 +71,16 @@ extension Round {
         }
         let currentPlayerID: String = playerHands[currentPlayerHandIndex].player.id
         guard let cardIndex: Int = playerHands[currentPlayerHandIndex].cards
-            .firstIndex(where: { $0.id == cardID })
+            .firstIndex(where: { $0 == cardID })
         else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
-        let discarded: Card = playerHands[currentPlayerHandIndex].cards.remove(at: cardIndex)
-        discardPile.append(discarded)
+        let discardedCardID: CardID = playerHands[currentPlayerHandIndex].cards.remove(at: cardIndex)
+        discardPile.append(discardedCardID)
+        
+        guard let discarded = cardsMap[discardedCardID] else {
+            throw Stage10Error.cardDoesNotExistInPlayersHand
+        }
         
         if checkIfCardsAreEmpty() {
             return
@@ -126,11 +135,15 @@ extension Round {
         
         func removeCard(by id: CardID) throws -> Card {
             guard let index: Int = playerHands[currentPlayerHandIndex].cards
-                .firstIndex(where: { id == $0.id })
+                .firstIndex(where: { id == $0 })
             else {
                 throw Stage10Error.cardDoesNotExistInPlayersHand
             }
-            return playerHands[currentPlayerHandIndex].cards.remove(at: index)
+            let cardID = playerHands[currentPlayerHandIndex].cards.remove(at: index)
+            guard let card = cardsMap[cardID] else {
+                throw Stage10Error.cardDoesNotExistInPlayersHand
+            }
+            return card
         }
         
         return try ids.map { try removeCard(by: $0) }
@@ -186,23 +199,24 @@ extension Round {
         else {
             throw Stage10Error.notWaitingForPlayerToPickUp
         }
-        let card: Card
+        let cardID: CardID
         if fromDiscardPile,
-           let topCardOfDiscardPile: Card = discardPile.last,
-           topCardOfDiscardPile.cardType.isSkip == false {
-            card = discardPile.removeLast()
+           let topCardID = discardPile.last,
+           let topCard = cardsMap[topCardID],
+           topCard.cardType.isSkip == false {
+            cardID = discardPile.removeLast()
         } else {
             guard deck.isEmpty == false else {
                 endRoundBecauseDeckIsEmpty()
                 return
             }
-            card = deck.removeLast()
+            cardID = deck.removeLast()
         }
-        playerHands[currentPlayerHandIndex].cards.append(card)
+        playerHands[currentPlayerHandIndex].cards.append(cardID)
         log.actions.append(
             .init(
                 playerID: playerHands[currentPlayerHandIndex].player.id,
-                decision: .pickup(cardId: card.id, fromDiscardPile: fromDiscardPile)
+                decision: .pickup(cardId: cardID, fromDiscardPile: fromDiscardPile)
             )
         )
         state = .waitingForPlayerToAct(
@@ -220,8 +234,8 @@ extension Round {
         guard playerHands[currentPlayerHandIndex].isRequirementsComplete else {
             throw Stage10Error.didNotCompleteAllRequirementsForStage
         }
-        guard let card: Card = playerHands[currentPlayerHandIndex].cards
-            .first(where: { $0.id == form.cardID })
+        guard playerHands[currentPlayerHandIndex].cards.contains(form.cardID),
+              let card: Card = cardsMap[form.cardID]
         else {
             throw Stage10Error.cardDoesNotExistInPlayersHand
         }
@@ -258,7 +272,7 @@ extension Round {
             }
         }
         playerHands[belongingToPlayerIndex].completed[completedRequirementIndex] = updatedCompletedRequirement
-        playerHands[currentPlayerHandIndex].cards.removeAll(where: { form.cardID == $0.id })
+        playerHands[currentPlayerHandIndex].cards.removeAll(where: { form.cardID == $0 })
         log.actions.append(
             .init(
                 playerID: playerHands[currentPlayerHandIndex].player.id,
@@ -303,7 +317,7 @@ extension Round {
     
     private mutating func addUpPlayerPoints() {
         for (index, playerHand) in playerHands.enumerated() {
-            playerHands[index].player.points += playerHand.cards.totalPoints
+            playerHands[index].player.points += playerHand.cards.totalPoints(cardsMap: cardsMap)
         }
     }
     

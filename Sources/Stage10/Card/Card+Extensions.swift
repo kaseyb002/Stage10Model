@@ -106,6 +106,22 @@ extension [Card] {
     }
 }
 
+extension [CardID] {
+    public static func randomSet(of count: Int) -> [CardID] {
+        Array([Card].deck().map(\.id).shuffled().prefix(count))
+    }
+    
+    public func totalPoints(cardsMap: [CardID: Card]) -> Int {
+        reduce(.zero, { $0 + (cardsMap[$1]?.cardType.points ?? 0) })
+    }
+}
+
+extension [CardID: Card] {
+    public func findCards(byIDs cardIDs: [CardID]) -> [Card] {
+        cardIDs.compactMap { self[$0] }
+    }
+}
+
 private extension Card {
     var sortDisplayValue: Int {
         switch cardType {

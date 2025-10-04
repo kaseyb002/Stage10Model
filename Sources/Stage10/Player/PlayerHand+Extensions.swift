@@ -5,10 +5,11 @@ extension PlayerHand {
         completed.count >= player.stage.requirements.count
     }
     
-    public var logValue: String {
-        """
+    public func logValue(cardsMap: [CardID: Card]) -> String {
+        let resolvedCards: [Card] = cardsMap.findCards(byIDs: cards)
+        return """
         \(player.logValue)
-        Cards: \(cards.sortedForDisplay.logValue)
+        Cards: \(resolvedCards.sortedForDisplay.logValue)
         Completed requirements: \(isRequirementsComplete ? "Completed" : "Incomplete")
         \(completed.logValue)
         """
@@ -16,10 +17,10 @@ extension PlayerHand {
 }
 
 extension [PlayerHand] {
-    public var logValue: String {
+    public func logValue(cardsMap: [CardID: Card]) -> String {
         var text = ""
         for playerHand in self {
-            text += playerHand.logValue
+            text += playerHand.logValue(cardsMap: cardsMap)
             text += "\n\n"
         }
         return text

@@ -7,8 +7,9 @@ public struct Round: Equatable, Codable {
     
     // MARK: - Round Progression
     public internal(set) var state: State
-    public internal(set) var deck: [Card]
-    public internal(set) var discardPile: [Card]
+    public internal(set) var cardsMap: [CardID: Card]
+    public internal(set) var deck: [CardID]
+    public internal(set) var discardPile: [CardID]
     public internal(set) var playerHands: [PlayerHand]
     public internal(set) var skipQueue: Dictionary<String, Int> = [:]
     

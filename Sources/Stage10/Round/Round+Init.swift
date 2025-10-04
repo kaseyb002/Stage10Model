@@ -16,6 +16,7 @@ extension Round {
         self.id = id
         self.started = started
         var deck: [Card] = cookedDeck ?? .deck().shuffled()
+        self.cardsMap = Dictionary(uniqueKeysWithValues: deck.map { ($0.id, $0) })
         self.playerHands = Self.dealCards(
             to: players,
             deck: &deck
@@ -26,8 +27,8 @@ extension Round {
             deck.shuffle()
             firstDiscard = deck.removeLast()
         }
-        self.deck = deck
-        self.discardPile = [firstDiscard]
+        self.deck = deck.map(\.id)
+        self.discardPile = [firstDiscard.id]
         self.state = .waitingForPlayerToAct(
             playerId: players.first!.id,
             discardState: .needsToPickUp
@@ -74,7 +75,7 @@ extension Round {
             deck.removeLast(10)
             let playerHand: PlayerHand = .init(
                 player: player,
-                cards: playerCards,
+                cards: playerCards.map(\.id),
                 completed: []
             )
             playerHands.append(playerHand)

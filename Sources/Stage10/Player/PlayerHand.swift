@@ -2,12 +2,12 @@ import Foundation
 
 public struct PlayerHand: Equatable, Codable {
     public var player: Player
-    public var cards: [Card]
+    public var cards: [CardID]
     public var completed: [CompletedRequirement]
     
     public init(
         player: Player,
-        cards: [Card],
+        cards: [CardID],
         completed: [CompletedRequirement]
     ) {
         self.player = player

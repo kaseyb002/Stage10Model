@@ -23,17 +23,17 @@ extension Round {
         State: \(state.logValue)
         Deck remaining: \(deck.count)
         Discard pile count: \(discardPile.count)
-        Discard top card: \(discardPile.last?.cardType.logValue ?? "None")
+        Discard top card: \(cardsMap[discardPile.last ?? -1]?.cardType.logValue ?? "None")
         Current player: \(currentPlayerHand?.player.name ?? "None") \(currentPlayerHand?.player.id ?? "")
         
-        \(playerHands.logValue)
+        \(String(describing: playerHands.logValue))
         """
     }
     
     public var allCards: [Card] {
-        deck
-        + discardPile
-        + playerHands.flatMap(\.cards)
-        + playerHands.flatMap(\.completed).flatMap(\.requirementType.cards)
+        let allCardIDs = deck + discardPile + playerHands.flatMap(\.cards) + playerHands.flatMap(\.completed).flatMap { completed in
+            completed.requirementType.cards.compactMap { card in card.id }
+        }
+        return allCardIDs.compactMap { cardID in cardsMap[cardID] }
     }
 }

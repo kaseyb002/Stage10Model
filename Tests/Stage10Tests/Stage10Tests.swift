@@ -115,39 +115,39 @@ import Testing
         ]
     )
     try round.pickUpCard(fromDiscardPile: false)
-    try round.playerHands[0].cards[0].setPlayerToSkip(playerID: "3")
-    try round.discard(round.playerHands[0].cards[0].id)
+    try round.setSkip(myPlayerID: "1", cardID: round.playerHands[0].cards[0], skipPlayerID: "3")
+    try round.discard(round.playerHands[0].cards[0])
     try round.pickUpCard(fromDiscardPile: false)
     #expect(throws: Stage10Error.discardedSkipWithoutSpecifyingPlayerToSkip) {
-        try round.discard(round.playerHands[1].cards[0].id)
+        try round.discard(round.playerHands[1].cards[0])
     }
-    try round.playerHands[1].cards[0].setPlayerToSkip(playerID: "3")
-    try round.discard(round.playerHands[1].cards[0].id)
+    try round.setSkip(myPlayerID: "2", cardID: round.playerHands[1].cards[0], skipPlayerID: "3")
+    try round.discard(round.playerHands[1].cards[0])
     #expect(round.skipQueue["3"] == 1)
     try round.pickUpCard(fromDiscardPile: false)
     #expect(throws: Stage10Error.triedToSkipYourself) {
-        try round.playerHands[3].cards[0].setPlayerToSkip(playerID: "4")
-        try round.discard(round.playerHands[3].cards[0].id)
+        try round.setSkip(myPlayerID: "4", cardID: round.playerHands[3].cards[0], skipPlayerID: "4")
+        try round.discard(round.playerHands[3].cards[0])
     }
-    try round.playerHands[3].cards[0].setPlayerToSkip(playerID: "1")
-    try round.discard(round.playerHands[3].cards[0].id)
+    try round.setSkip(myPlayerID: "4", cardID: round.playerHands[3].cards[0], skipPlayerID: "1")
+    try round.discard(round.playerHands[3].cards[0])
     #expect(round.skipQueue["1"] == 0)
     
     try round.pickUpCard(fromDiscardPile: false)
-    try round.playerHands[1].cards[0].setPlayerToSkip(playerID: "1")
-    try round.discard(round.playerHands[1].cards[0].id)
+    try round.setSkip(myPlayerID: "2", cardID: round.playerHands[1].cards[0], skipPlayerID: "1")
+    try round.discard(round.playerHands[1].cards[0])
     
     try round.pickUpCard(fromDiscardPile: false)
-    try round.playerHands[3].cards[0].setPlayerToSkip(playerID: "1")
-    try round.discard(round.playerHands[3].cards[0].id)
+    try round.setSkip(myPlayerID: "4", cardID: round.playerHands[3].cards[0], skipPlayerID: "1")
+    try round.discard(round.playerHands[3].cards[0])
 
     try round.pickUpCard(fromDiscardPile: false)
-    try round.playerHands[1].cards[0].setPlayerToSkip(playerID: "1")
-    try round.discard(round.playerHands[1].cards[0].id)
+    try round.setSkip(myPlayerID: "2", cardID: round.playerHands[1].cards[0], skipPlayerID: "1")
+    try round.discard(round.playerHands[1].cards[0])
     
     try round.pickUpCard(fromDiscardPile: false)
-    try round.playerHands[2].cards[0].setPlayerToSkip(playerID: "1")
-    try round.discard(round.playerHands[2].cards[0].id)
+    try round.setSkip(myPlayerID: "3", cardID: round.playerHands[2].cards[0], skipPlayerID: "1")
+    try round.discard(round.playerHands[2].cards[0])
     #expect(round.skipQueue == [
         "1": 3,
         "3": 0,
@@ -237,7 +237,7 @@ import Testing
             attempt: .addToSet
         )
     )
-    try round.playerHands[1].cards[0].setPlayerToSkip(playerID: round.playerHands[0].player.id)
+    try round.setSkip(myPlayerID: "2", cardID: round.playerHands[1].cards[0], skipPlayerID: round.playerHands[0].player.id)
     try round.discard(105)
     print(round.logValue)
 }
@@ -255,21 +255,27 @@ import Testing
     #expect(round.playerHands.allSatisfy({ $0.isRequirementsComplete == false }))
     #expect(round.playerHands.allSatisfy({ $0.completed.isEmpty }))
     try round.pickUpCard(fromDiscardPile: false)
-    try round.discard(round.playerHands[0].cards[0].id)
+    try round.discard(round.playerHands[0].cards[0])
     #expect(round.playerHands[0].cards.count == 10)
     #expect(round.deck.count == 86)
     #expect(round.discardPile.count == 2)
     #expect(round.currentPlayerHand?.player.id == round.playerHands[1].player.id)
     try round.pickUpCard(fromDiscardPile: true)
-    #expect(round.playerHands[1].cards.contains(where: { $0.cardType == .number(NumberCard(number: .ten, color: .red)) }))
+    #expect(round.playerHands[1].cards.contains(where: { cardID in 
+        guard let card = round.cardsMap[cardID] else { return false }
+        return card.cardType == .number(NumberCard(number: .ten, color: .red))
+    }))
     #expect(round.discardPile.count == 1)
     #expect(throws: Stage10Error.notWaitingForPlayerToPickUp) {
         try round.pickUpCard(fromDiscardPile: true)
     }
     try round.discard(12)
     try round.pickUpCard(fromDiscardPile: true)
-    #expect(round.playerHands[0].cards.filter({ $0.cardType.numberValue == .one }).count == 2)
-    try round.discard(round.playerHands[0].cards[9].id)
+    #expect(round.playerHands[0].cards.filter({ cardID in
+        guard let card = round.cardsMap[cardID] else { return false }
+        return card.cardType.numberValue == .one
+    }).count == 2)
+    try round.discard(round.playerHands[0].cards[9])
 //    try round.pickUpCard(fromDiscardPile: true)
     print(round.logValue)
 //    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {

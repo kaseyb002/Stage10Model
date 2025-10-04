@@ -36,7 +36,8 @@ extension Round {
                     try updatedRound.pickUpCard(fromDiscardPile: false)
 
                 case .needsToDiscard:
-                    if let firstCard: Card = updatedRound.currentPlayerHand?.cards.first,
+                    if let firstCardID: CardID = updatedRound.currentPlayerHand?.cards.first,
+                       let firstCard: Card = updatedRound.cardsMap[firstCardID],
                        let targetPlayerID: String = findBestSkipTarget() {
                         if firstCard.cardType.isSkip {
                             try updatedRound.setSkip(
@@ -61,7 +62,8 @@ extension Round {
     
     private mutating func makeAIPickupDecision() throws {
         // Check if the top card of discard pile is useful
-        guard let topDiscardCard = discardPile.last,
+        guard let topDiscardCardID = discardPile.last,
+              let topDiscardCard = cardsMap[topDiscardCardID],
               !topDiscardCard.cardType.isSkip,
               let currentPlayerHand = self.currentPlayerHand
         else {
@@ -106,7 +108,9 @@ extension Round {
         case .numberSet(let count):
             // Check if we have cards of the same number
             if let cardNumber = card.cardType.numberValue {
-                let matchingCards = hand.cards.filter { $0.cardType.numberValue == cardNumber }
+                let matchingCards = hand.cards.compactMap { cardID in
+                    cardsMap[cardID]?.cardType.numberValue == cardNumber ? cardsMap[cardID] : nil
+                }
                 return matchingCards.count >= count - 1 // Need count-1 more cards
             }
             return card.cardType.isWild
@@ -114,7 +118,9 @@ extension Round {
         case .colorSet(let count):
             // Check if we have cards of the same color
             if let cardColor = card.cardType.color {
-                let matchingCards = hand.cards.filter { $0.cardType.color == cardColor }
+                let matchingCards = hand.cards.compactMap { cardID in
+                    cardsMap[cardID]?.cardType.color == cardColor ? cardsMap[cardID] : nil
+                }
                 return matchingCards.count >= count - 1
             }
             return card.cardType.isWild
@@ -152,7 +158,7 @@ extension Round {
         
         let requirements = currentPlayerHand.player.stage.requirements
         var completionAttempts: [CompleteStageForm.CompletionAttempt] = []
-        var availableCards = currentPlayerHand.cards
+        var availableCards = currentPlayerHand.cards.compactMap { cardID in cardsMap[cardID] }
         
         // Try to fulfill each requirement
         for requirement in requirements {
@@ -187,7 +193,7 @@ extension Round {
                 // Find the target number from non-wild cards
                 var targetNumber: CardNumber?
                 for cardID in attempt.cardIDs {
-                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                    if let card = cardsMap[cardID],
                        let number = card.cardType.numberValue {
                         targetNumber = number
                         break
@@ -197,7 +203,7 @@ extension Round {
                 // If we found a target number, set wild cards to use that number
                 if let targetNumber = targetNumber {
                     for cardID in attempt.cardIDs {
-                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                        if let card = cardsMap[cardID],
                            case .wild = card.cardType {
                             try useWildAs(
                                 myPlayerID: currentPlayerHand.player.id,
@@ -212,7 +218,7 @@ extension Round {
                 // Find the target color from non-wild cards
                 var targetColor: CardColor?
                 for cardID in attempt.cardIDs {
-                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                    if let card = cardsMap[cardID],
                        let color = card.cardType.color {
                         targetColor = color
                         break
@@ -222,7 +228,7 @@ extension Round {
                 // If we found a target color, set wild cards to use that color
                 if let targetColor = targetColor {
                     for cardID in attempt.cardIDs {
-                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                        if let card = cardsMap[cardID],
                            case .wild = card.cardType {
                             try useWildAs(
                                 myPlayerID: currentPlayerHand.player.id,
@@ -247,7 +253,7 @@ extension Round {
         // Create a sorted array of cards to determine positions
         var cards: [Card] = []
         for cardID in attempt.cardIDs {
-            if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }) {
+            if let card = cardsMap[cardID] {
                 cards.append(card)
             }
         }
@@ -430,7 +436,8 @@ extension Round {
         guard currentPlayerHand.isRequirementsComplete else { return }
         
         // Try to add cards to other players' completed requirements
-        for card in currentPlayerHand.cards {
+        for cardID in currentPlayerHand.cards {
+            guard let card = cardsMap[cardID] else { continue }
             for otherPlayerHand in playerHands {
                 if otherPlayerHand.player.id != currentPlayerHand.player.id {
                     for completedReq in otherPlayerHand.completed {
@@ -467,7 +474,8 @@ extension Round {
         // Strategy: Discard the least useful card
         var cardScores: [(card: Card, score: Int)] = []
         
-        for card in currentPlayerHand.cards {
+        for cardID in currentPlayerHand.cards {
+            guard let card = cardsMap[cardID] else { continue }
             let score = calculateCardScore(card, for: currentPlayerHand)
             cardScores.append((card: card, score: score))
         }

@@ -36,7 +36,8 @@ extension Round {
                     try updatedRound.pickUpCard(fromDiscardPile: false)
                     
                 case .needsToDiscard:
-                    if let firstCard: Card = updatedRound.currentPlayerHand?.cards.first,
+                    if let firstCardID: CardID = updatedRound.currentPlayerHand?.cards.first,
+                       let firstCard: Card = updatedRound.cardsMap[firstCardID],
                        let targetPlayerID: String = findBestSkipTarget() {
                         if firstCard.cardType.isSkip {
                             try updatedRound.setSkip(
@@ -77,7 +78,10 @@ extension Round {
             throw Stage10Error.notWaitingForPlayerToAct
         }
         
-        let availableCards = playerHand.cards.filter { !$0.cardType.isWild }
+        let availableCards: [Card] = playerHand.cards.compactMap { cardID in
+            guard let card = cardsMap[cardID] else { return nil }
+            return card.cardType.isWild ? nil : card
+        }
         
         // Rule 1: Never discard wild cards
         // Rule 2: Prioritize discarding skip cards first
@@ -142,7 +146,8 @@ extension Round {
            nextPlayerHand.isRequirementsComplete {
             
             // Check if any of our cards could be added to their completed requirements
-            for card in playerHand.cards {
+            for cardID in playerHand.cards {
+                guard let card = cardsMap[cardID] else { continue }
                 for otherPlayerHand in playerHands {
                     for completedRequirement in otherPlayerHand.completed {
                         do {
@@ -212,7 +217,10 @@ extension Round {
     }
     
     private func evaluateCardForRequirement(card: Card, requirement: StageRequirement, playerHand: PlayerHand) -> Int {
-        let availableCards = playerHand.cards.filter { !$0.cardType.isSkip }
+        let availableCards: [Card] = playerHand.cards.compactMap { cardID in
+            guard let card = cardsMap[cardID] else { return nil }
+            return card.cardType.isSkip ? nil : card
+        }
         let wildCards = availableCards.filter { $0.cardType.isWild }
         
         switch requirement {
@@ -318,7 +326,7 @@ extension Round {
         }
         
         let requirements = playerHand.player.stage.requirements
-        let availableCards = playerHand.cards
+        let availableCards = playerHand.cards.compactMap { cardID in cardsMap[cardID] }
         
         // Try to find a valid combination of cards for all requirements
         if let validCombination = findValidRequirementCombination(
@@ -604,7 +612,7 @@ extension Round {
                 // Find the target number from non-wild cards
                 var targetNumber: CardNumber?
                 for cardID in attempt.cardIDs {
-                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                    if let card = cardsMap[cardID],
                        let number = card.cardType.numberValue {
                         targetNumber = number
                         break
@@ -614,7 +622,7 @@ extension Round {
                 // If we found a target number, set wild cards to use that number
                 if let targetNumber = targetNumber {
                     for cardID in attempt.cardIDs {
-                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                        if let card = cardsMap[cardID],
                            case .wild = card.cardType {
                             try useWildAs(
                                 myPlayerID: currentPlayerHand.player.id,
@@ -629,7 +637,7 @@ extension Round {
                 // Find the target color from non-wild cards
                 var targetColor: CardColor?
                 for cardID in attempt.cardIDs {
-                    if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                    if let card = cardsMap[cardID],
                        let color = card.cardType.color {
                         targetColor = color
                         break
@@ -639,7 +647,7 @@ extension Round {
                 // If we found a target color, set wild cards to use that color
                 if let targetColor = targetColor {
                     for cardID in attempt.cardIDs {
-                        if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }),
+                        if let card = cardsMap[cardID],
                            case .wild = card.cardType {
                             try useWildAs(
                                 myPlayerID: currentPlayerHand.player.id,
@@ -664,7 +672,7 @@ extension Round {
         // Create a sorted array of cards to determine positions
         var cards: [Card] = []
         for cardID in attempt.cardIDs {
-            if let card = currentPlayerHand.cards.first(where: { $0.id == cardID }) {
+            if let card = cardsMap[cardID] {
                 cards.append(card)
             }
         }
@@ -713,7 +721,8 @@ extension Round {
         }
         
         // Try to add each card in the player's hand to every completed requirement
-        for card in playerHand.cards {
+        for cardID in playerHand.cards {
+            guard let card = cardsMap[cardID] else { continue }
             for otherPlayerHand in playerHands {
                 for completedRequirement in otherPlayerHand.completed {
                     // Determine the appropriate attempt type based on requirement type
@@ -753,7 +762,8 @@ extension Round {
 // MARK: - Pickup Decision
 extension Round {
     private mutating func makeAIPickupDecision(playerHand: PlayerHand) throws {
-        guard let topDiscardCard = discardPile.last else {
+        guard let topDiscardCardID = discardPile.last,
+              let topDiscardCard = cardsMap[topDiscardCardID] else {
             try pickUpCard(fromDiscardPile: false)
             return
         }
@@ -808,7 +818,10 @@ extension Round {
         requirement: StageRequirement,
         for playerHand: PlayerHand
     ) throws -> Bool {
-        let availableCards = playerHand.cards.filter { !$0.cardType.isSkip }
+        let availableCards: [Card] = playerHand.cards.compactMap { cardID in
+            guard let card = cardsMap[cardID] else { return nil }
+            return card.cardType.isSkip ? nil : card
+        }
         let wildCards = availableCards.filter { $0.cardType.isWild }
         
         switch requirement {

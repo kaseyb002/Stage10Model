@@ -15,7 +15,12 @@ extension Round {
         }
         self.id = id
         self.started = started
-        var deck: [Card] = cookedDeck ?? .deck().shuffled()
+        var deck: [Card] = cookedDeck ?? .deck()
+            .shuffled()
+            .enumerated()
+            .map { sgd in
+                Card(id: sgd.offset, cardType: sgd.element.cardType)
+            }
         self.cardsMap = Dictionary(uniqueKeysWithValues: deck.map { ($0.id, $0) })
         self.playerHands = Self.dealCards(
             to: players,
@@ -52,6 +57,8 @@ extension Round {
                     }
                 }
             }
+            let firstPlayer: Player = players.removeFirst()
+            players.append(firstPlayer)
             return players
         }
         

@@ -74,10 +74,6 @@ extension Round {
         // if possible, if the next player has their requirements complete, do not discard
         // a card that the player could add to his own completed requirements or another players compelted requirements
         
-        guard currentPlayerHandIndex != nil else {
-            throw Stage10Error.notWaitingForPlayerToAct
-        }
-        
         let availableCards: [Card] = playerHand.cards.compactMap { cardID in
             guard let card = cardsMap[cardID] else { return nil }
             return card.cardType.isWild ? nil : card

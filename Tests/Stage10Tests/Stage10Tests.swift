@@ -8,6 +8,16 @@ import Testing
     #expect(Set(deck.map { $0.id }).count == 108)
 }
 
+@Test func roundSize() async throws {
+    let round: Round = try .init(
+        players: [
+            .fake(),
+            .fake(),
+        ]
+    )
+    #expect(round.cardsMap.count == 108)
+}
+
 @Test func run() async throws {
     _ = try Run(
         requiredLength: 7,

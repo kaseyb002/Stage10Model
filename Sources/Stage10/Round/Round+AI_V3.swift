@@ -126,6 +126,13 @@ extension Round {
             }
             switch playerHand.player.stage {
             case .one, .seven, .nine, .ten: // multiple sets
+                let numberCounts: [CardNumber: Int] = numberCounts(for: playerCards)
+                let cardNumberWithLowestCount: CardNumber = numberCounts.keys
+                    .max(by: { (numberCounts[$0] ?? 0) > (numberCounts[$1] ?? 0) })!
+                if let card: Card = playerCards
+                    .first(where: { $0.cardType.isNumber && $0.cardType.numberValue == cardNumberWithLowestCount }) {
+                    return card
+                }
                 if shouldPickUpForSet(
                     card: card,
                     cardNumber: cardNumber,
@@ -135,6 +142,7 @@ extension Round {
                 }
                 
             case .two, .three: // mixed set + run
+                // being lazy
                 if shouldPickUpForSet(
                     card: card,
                     cardNumber: cardNumber,
@@ -149,6 +157,13 @@ extension Round {
                 }
 
             case .eight: // colors
+                let colorCounts: [CardColor: Int] = colorCounts(for: playerCards)
+                let cardColorWithLowestCount: CardColor = colorCounts.keys
+                    .max(by: { (colorCounts[$0] ?? 0) > (colorCounts[$1] ?? 0) })!
+                if let card: Card = playerCards
+                    .first(where: { $0.cardType.isNumber && $0.cardType.color == cardColorWithLowestCount }) {
+                    return card
+                }
                 if shouldPickUpForColor(
                     card: card,
                     cardColor: cardColor,
@@ -158,6 +173,14 @@ extension Round {
                 }
                 
             case .four, .five, .six: // pure run
+                let numberCounts: [CardNumber: Int] = numberCounts(for: playerCards)
+                let cardNumberWithHighestCount: CardNumber = numberCounts.keys
+                    .max(by: { (numberCounts[$0] ?? 0) < (numberCounts[$1] ?? 0) })!
+                if (numberCounts.values.max() ?? 0) > 1,
+                   let card: Card = playerCards
+                    .first(where: { $0.cardType.isNumber && $0.cardType.numberValue == cardNumberWithHighestCount }) {
+                    return card
+                }
                 if shouldPickUpForRun(
                     card: card,
                     cardNumber: cardNumber,

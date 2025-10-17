@@ -14,15 +14,20 @@ extension Round {
             try updatedRound.makeAIPickupDecision(playerHand: currentPlayerHand)
             
         case .needsToDiscard:
-            if !currentPlayerHand.isRequirementsComplete {
-                try updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
+            if let currentPlayerHand: PlayerHand = self.currentPlayerHand,
+               !currentPlayerHand.isRequirementsComplete {
+                try updatedRound.attemptLaydownIfNeeded(playerHand: self.currentPlayerHand!)
             }
             
             // Try to add cards to other players' completed requirements
-            try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
+            if let currentPlayerHand: PlayerHand = self.currentPlayerHand {
+                try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
+            }
             
             // Finally discard a card
-            try updatedRound.makeAIDiscardDecision(playerHand: currentPlayerHand)
+            if let currentPlayerHand: PlayerHand = self.currentPlayerHand {
+                try updatedRound.makeAIDiscardDecision(playerHand: currentPlayerHand)
+            }
         }
         
         return updatedRound
@@ -99,7 +104,6 @@ extension Round {
         } else {
             let bestCardToDiscard = findBestCardToDiscard(
                 availableCards: availableCards,
-                requirements: requirements,
                 cardsToAvoid: cardsToAvoid,
                 playerHand: playerHand
             )
@@ -109,7 +113,6 @@ extension Round {
     
     private func findBestCardToDiscard(
         availableCards playerCards: [Card],
-        requirements: [StageRequirement],
         cardsToAvoid: Set<CardID>,
         playerHand: PlayerHand
     ) -> Card {

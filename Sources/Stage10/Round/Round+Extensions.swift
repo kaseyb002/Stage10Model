@@ -26,7 +26,7 @@ extension Round {
         Discard top card: \(cardsMap[discardPile.last ?? -1]?.cardType.logValue ?? "None")
         Current player: \(currentPlayerHand?.player.name ?? "None") \(currentPlayerHand?.player.id ?? "")
         
-        \(String(describing: playerHands.logValue))
+        \(String(describing: playerHands.logValue(cardsMap: cardsMap)))
         """
     }
     

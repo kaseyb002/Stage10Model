@@ -14,18 +14,18 @@ extension Round {
             try updatedRound.makeAIPickupDecision(playerHand: currentPlayerHand)
             
         case .needsToDiscard:
-            if let currentPlayerHand: PlayerHand = self.currentPlayerHand,
+            if let currentPlayerHand: PlayerHand = updatedRound.currentPlayerHand,
                !currentPlayerHand.isRequirementsComplete {
-                try updatedRound.attemptLaydownIfNeeded(playerHand: self.currentPlayerHand!)
+                try updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
             }
             
             // Try to add cards to other players' completed requirements
-            if let currentPlayerHand: PlayerHand = self.currentPlayerHand {
+            if let currentPlayerHand: PlayerHand = updatedRound.currentPlayerHand {
                 try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
             }
             
             // Finally discard a card
-            if let currentPlayerHand: PlayerHand = self.currentPlayerHand {
+            if let currentPlayerHand: PlayerHand = updatedRound.currentPlayerHand {
                 try updatedRound.makeAIDiscardDecision(playerHand: currentPlayerHand)
             }
         }

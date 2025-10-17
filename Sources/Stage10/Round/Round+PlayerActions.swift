@@ -165,7 +165,7 @@ extension Round {
         var completedRequirements: [CompletedRequirement] = []
 
         for attempt in form.completionAttempts {
-            let cards: [Card] = try takePlayerCards(by: attempt.cardIDs)
+            let cards: [Card] = cardsMap.findCards(byIDs: attempt.cardIDs)
             let completedRequirement: CompletedRequirement = try .init(
                 requirement: attempt.requirement,
                 cards: cards
@@ -181,6 +181,8 @@ extension Round {
             throw Stage10Error.didNotCompleteAllRequirementsForStage
         }
         
+        _ = try takePlayerCards(by: form.completionAttempts.flatMap { $0.cardIDs })
+
         playerHands[currentPlayerHandIndex].completed = completedRequirements
         
         log.actions.append(

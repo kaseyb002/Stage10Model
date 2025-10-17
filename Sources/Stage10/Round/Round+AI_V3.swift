@@ -89,7 +89,6 @@ extension Round {
         }
         
         // Rule 3: Analyze requirements and find cards that don't help
-        let requirements = playerHand.player.stage.requirements
         let cardsToAvoid = getCardsToAvoidDiscarding(playerHand: playerHand)
         
         // Find the best card to discard based on requirements

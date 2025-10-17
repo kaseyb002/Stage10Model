@@ -16,12 +16,12 @@ extension Round {
         case .needsToDiscard:
             if let currentPlayerHand: PlayerHand = updatedRound.currentPlayerHand,
                !currentPlayerHand.isRequirementsComplete {
-                try updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
+                try? updatedRound.attemptLaydownIfNeeded(playerHand: currentPlayerHand)
             }
             
             // Try to add cards to other players' completed requirements
             if let currentPlayerHand: PlayerHand = updatedRound.currentPlayerHand {
-                try updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
+                try? updatedRound.attemptAddCardsIfNeeded(playerHand: currentPlayerHand)
             }
             
             // Finally discard a card

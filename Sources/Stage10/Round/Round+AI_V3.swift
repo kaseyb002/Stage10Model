@@ -530,7 +530,7 @@ extension Round {
             }
         }
         
-        guard let run = bestRun else {
+        guard var run = bestRun else {
             return nil
         }
         
@@ -551,6 +551,15 @@ extension Round {
                         myPlayerID: playerID,
                         cardID: card.id,
                         usedAs: .number(targetNumber)
+                    )
+                    run[index] = .init(
+                        id: card.id,
+                        cardType: .wild(
+                            .init(
+                                color: card.cardType.color ?? .blue,
+                                usedAs: .number(targetNumber)
+                            )
+                        )
                     )
                 }
             }

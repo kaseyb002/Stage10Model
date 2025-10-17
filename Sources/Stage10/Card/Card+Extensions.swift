@@ -35,9 +35,13 @@ extension [Card] {
                 cardType: .skip(playerID: nil)
             ),
         ]
-        return (numbers + numbers + wilds + wilds + skips).enumerated().map { index, card in
+        let allCards = numbers + numbers + wilds + wilds + skips
+        // Shuffle IDs separately to prevent card ID from revealing card value
+        // This is critical for network multiplayer where card IDs are exposed
+        let shuffledIDs: [Int] = (0..<allCards.count).shuffled()
+        return zip(allCards, shuffledIDs).map { card, cardID in
             Card(
-                id: index,
+                id: cardID,
                 cardType: card.cardType
             )
         }

@@ -400,7 +400,7 @@ extension Round {
         }
         let numberCounts: [CardNumber: Int] = numberCounts(for: cards)
         let cardNumberWithHighestCount: CardNumber = numberCounts.keys
-            .max(by: { (numberCounts[$0] ?? 0) > (numberCounts[$1] ?? 0) })!
+            .max(by: { (numberCounts[$0] ?? 0) < (numberCounts[$1] ?? 0) })!
         // grab all the other cards
         var set: [Card] = Array(cards
             .filter({ $0.cardType.isNumber && $0.cardType.numberValue == cardNumberWithHighestCount })
@@ -433,7 +433,7 @@ extension Round {
         }
         let colorCounts: [CardColor: Int] = colorCounts(for: cards)
         let cardColorWithHighestCount: CardColor = colorCounts.keys
-            .max(by: { (colorCounts[$0] ?? 0) > (colorCounts[$1] ?? 0) })!
+            .max(by: { (colorCounts[$0] ?? 0) < (colorCounts[$1] ?? 0) })!
         // grab all the other cards
         var set: [Card] = Array(cards
             .filter({ $0.cardType.isNumber && $0.cardType.color == cardColorWithHighestCount })

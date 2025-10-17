@@ -269,7 +269,7 @@ extension Round {
                 return nil
             }
             remainingCards.removeAll(where: { set.contains($0.id) })
-            guard let run: Set<CardID> = try makeRun(
+            guard let run: Array<CardID> = try makeRun(
                 of: 4,
                 with: remainingCards,
                 playerID: playerHand.player.id
@@ -278,7 +278,7 @@ extension Round {
             }
             return [
                 .init(requirement: .numberSet(count: 3), cardIDs: Array(set)),
-                .init(requirement: .run(length: 4), cardIDs: Array(run)),
+                .init(requirement: .run(length: 4), cardIDs: run),
             ]
             
         case .three:
@@ -291,7 +291,7 @@ extension Round {
                 return nil
             }
             remainingCards.removeAll(where: { set.contains($0.id) })
-            guard let run: Set<CardID> = try makeRun(
+            guard let run: Array<CardID> = try makeRun(
                 of: 4,
                 with: remainingCards,
                 playerID: playerHand.player.id
@@ -299,8 +299,8 @@ extension Round {
                 return nil
             }
             return [
-                .init(requirement: .numberSet(count: 3), cardIDs: Array(set)),
-                .init(requirement: .run(length: 4), cardIDs: Array(run)),
+                .init(requirement: .numberSet(count: 4), cardIDs: Array(set)),
+                .init(requirement: .run(length: 4), cardIDs: run),
             ]
     
         case .four:
@@ -461,9 +461,9 @@ extension Round {
         with cards: [Card],
         playerID: String
     ) throws -> [CompleteStageForm.CompletionAttempt]? {
-        if let run: Set<CardID> = try makeRun(of: count, with: cards, playerID: playerID) {
+        if let run: Array<CardID> = try makeRun(of: count, with: cards, playerID: playerID) {
             return [
-                .init(requirement: .run(length: count), cardIDs: Array(run))
+                .init(requirement: .run(length: count), cardIDs: run)
             ]
         } else {
             return nil
@@ -474,7 +474,7 @@ extension Round {
         of count: Int,
         with cards: [Card],
         playerID: String
-    ) throws -> Set<CardID>? {
+    ) throws -> Array<CardID>? {
         guard cards.isEmpty == false else {
             return nil
         }
@@ -556,7 +556,7 @@ extension Round {
             }
         }
         
-        return Set(run.map(\.id))
+        return run.sortedForDisplay.map(\.id)
     }
     
     // MARK: - Pickup Decision

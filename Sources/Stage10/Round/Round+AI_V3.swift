@@ -556,7 +556,7 @@ extension Round {
             }
         }
         
-        return run.sortedForDisplay.map(\.id)
+        return run.sorted(by: { $0.cardType.numberValue! < $1.cardType.numberValue! }).map(\.id)
     }
     
     // MARK: - Pickup Decision

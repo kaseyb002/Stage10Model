@@ -221,8 +221,6 @@ extension Round {
         // attempt to complete the requirements with your current set of cards
         // this will be very difficult, because you can use wilds
         // that increases the computational complexity massively
-        // i heard somewhere you can use a greedy algorithm to help solve this
-        // but i dont know if that's true or not, just an idea i'll throw out there
         
         // Only proceed if the player hasn't completed their requirements yet
         guard !playerHand.isRequirementsComplete else {
@@ -230,20 +228,225 @@ extension Round {
         }
         
         let requirements = playerHand.player.stage.requirements
-        let availableCards = playerHand.cards.compactMap { cardID in cardsMap[cardID] }
+        let availableCards = cardsMap.findCards(byIDs: playerHand.cards)
         
-        // Try to find a valid combination of cards for all requirements
-        if let validCombination = findValidRequirementCombination(
+        // Try to find a valid combination of cards that satisfies all requirements
+        if let completionAttempts = try findValidCompletion(
             requirements: requirements,
-            availableCards: availableCards
+            availableCards: availableCards,
+            playerHand: playerHand
         ) {
-            // Pre-configure wild cards before completion
-            try setWildCardsUsedAs(for: validCombination)
+            // Pre-configure wild cards before completing the stage
+            try setWildCardsUsedAs(for: completionAttempts)
             
-            // Create the completion form
-            let form = CompleteStageForm(completionAttempts: validCombination)
+            // Complete the stage with the found combination
+            let form = CompleteStageForm(completionAttempts: completionAttempts)
             try completeStage(form: form)
         }
+    }
+    
+    private func findValidCompletion(
+        requirements: [StageRequirement],
+        availableCards: [Card],
+        playerHand: PlayerHand
+    ) throws -> [CompleteStageForm.CompletionAttempt]? {
+        // Filter out skip cards as they can't be used in requirements
+        let usableCards = availableCards.filter { !$0.cardType.isSkip }
+        
+        // Try to find a valid assignment of cards to requirements
+        return try findCardAssignment(
+            requirements: requirements,
+            availableCards: usableCards,
+            currentIndex: 0,
+            usedCardIDs: Set<CardID>()
+        )
+    }
+    
+    private func findCardAssignment(
+        requirements: [StageRequirement],
+        availableCards: [Card],
+        currentIndex: Int,
+        usedCardIDs: Set<CardID>
+    ) throws -> [CompleteStageForm.CompletionAttempt]? {
+        // Base case: all requirements satisfied
+        if currentIndex >= requirements.count {
+            return []
+        }
+        
+        let requirement = requirements[currentIndex]
+        let remainingCards = availableCards.filter { !usedCardIDs.contains($0.id) }
+        
+        // Try to find cards that satisfy this requirement
+        if let cardCombination = try findCardsForRequirement(
+            requirement: requirement,
+            availableCards: remainingCards
+        ) {
+            var newUsedCardIDs = usedCardIDs
+            for card in cardCombination {
+                newUsedCardIDs.insert(card.id)
+            }
+            
+            // Recursively try to satisfy remaining requirements
+            if let remainingAttempts = try findCardAssignment(
+                requirements: requirements,
+                availableCards: availableCards,
+                currentIndex: currentIndex + 1,
+                usedCardIDs: newUsedCardIDs
+            ) {
+                let attempt = CompleteStageForm.CompletionAttempt(
+                    requirement: requirement,
+                    cardIDs: cardCombination.map { $0.id }
+                )
+                return [attempt] + remainingAttempts
+            }
+        }
+        
+        return nil
+    }
+    
+    private func findCardsForRequirement(
+        requirement: StageRequirement,
+        availableCards: [Card]
+    ) throws -> [Card]? {
+        switch requirement {
+        case .numberSet(let count):
+            return findCardsForNumberSet(count: count, availableCards: availableCards)
+            
+        case .colorSet(let count):
+            return findCardsForColorSet(count: count, availableCards: availableCards)
+            
+        case .run(let length):
+            return findCardsForRun(length: length, availableCards: availableCards)
+        }
+    }
+    
+    private func findCardsForNumberSet(
+        count: Int,
+        availableCards: [Card]
+    ) -> [Card]? {
+        // Count occurrences of each number
+        var numberCounts: [CardNumber: [Card]] = [:]
+        var wildCards: [Card] = []
+        
+        for card in availableCards {
+            if card.cardType.isWild {
+                wildCards.append(card)
+            } else if let number = card.cardType.numberValue {
+                numberCounts[number, default: []].append(card)
+            }
+        }
+        
+        // Find the number with the most cards (including potential wilds)
+        var bestCombination: [Card]?
+        var bestNumberNonWildCount = 0
+        
+        for (_, cards) in numberCounts {
+            let nonWildCount = cards.count
+            let wildsNeeded = max(0, count - nonWildCount)
+            
+            if nonWildCount + wildCards.count >= count {
+                // Prefer combinations with more non-wild cards
+                if nonWildCount > bestNumberNonWildCount {
+                    bestNumberNonWildCount = nonWildCount
+                    let cardsToUse = cards + wildCards.prefix(wildsNeeded)
+                    bestCombination = Array(cardsToUse.prefix(count))
+                }
+            }
+        }
+        
+        // If we only have wilds and no number cards, we can still try
+        if bestCombination == nil && wildCards.count >= count {
+            bestCombination = Array(wildCards.prefix(count))
+        }
+        
+        return bestCombination
+    }
+    
+    private func findCardsForColorSet(
+        count: Int,
+        availableCards: [Card]
+    ) -> [Card]? {
+        // Count occurrences of each color
+        var colorCounts: [CardColor: [Card]] = [:]
+        var wildCards: [Card] = []
+        
+        for card in availableCards {
+            if card.cardType.isWild {
+                wildCards.append(card)
+            } else if let color = card.cardType.color {
+                colorCounts[color, default: []].append(card)
+            }
+        }
+        
+        // Find the color with the most cards (including potential wilds)
+        var bestCombination: [Card]?
+        var bestColorNonWildCount = 0
+        
+        for (_, cards) in colorCounts {
+            let nonWildCount = cards.count
+            let wildsNeeded = max(0, count - nonWildCount)
+            
+            if nonWildCount + wildCards.count >= count {
+                // Prefer combinations with more non-wild cards
+                if nonWildCount > bestColorNonWildCount {
+                    bestColorNonWildCount = nonWildCount
+                    let cardsToUse = cards + wildCards.prefix(wildsNeeded)
+                    bestCombination = Array(cardsToUse.prefix(count))
+                }
+            }
+        }
+        
+        return bestCombination
+    }
+    
+    private func findCardsForRun(
+        length: Int,
+        availableCards: [Card]
+    ) -> [Card]? {
+        // Separate wild cards from number cards
+        var numberCards: [CardNumber: Card] = [:]
+        var wildCards: [Card] = []
+        
+        for card in availableCards {
+            if card.cardType.isWild {
+                wildCards.append(card)
+            } else if let number = card.cardType.numberValue {
+                // Keep only one card per number (first occurrence)
+                if numberCards[number] == nil {
+                    numberCards[number] = card
+                }
+            }
+        }
+        
+        // Try to find a run starting from each possible number
+        for startNumber in CardNumber.allCases {
+            var cardsInRun: [Card] = []
+            var currentNumber = startNumber
+            var wildsUsed = 0
+            
+            for _ in 0..<length {
+                if let card = numberCards[currentNumber] {
+                    cardsInRun.append(card)
+                } else if wildsUsed < wildCards.count {
+                    cardsInRun.append(wildCards[wildsUsed])
+                    wildsUsed += 1
+                } else {
+                    break
+                }
+                
+                // Move to next number
+                guard let nextNumber = CardNumber(rawValue: currentNumber.rawValue + 1) else {
+                    break
+                }
+                currentNumber = nextNumber
+            }
+            
+            if cardsInRun.count >= length {
+                return Array(cardsInRun.prefix(length))
+            }
+        }
+        
+        return nil
     }
 
     // MARK: - Pickup Decision
@@ -533,237 +736,6 @@ extension Round {
         return false
     }
     
-    // MARK: - Laydown Helpers
-    private func findValidRequirementCombination(
-        requirements: [StageRequirement],
-        availableCards: [Card]
-    ) -> [CompleteStageForm.CompletionAttempt]? {
-        // Use a greedy approach: try to fulfill each requirement optimally
-        var remainingCards = availableCards
-        var attempts: [CompleteStageForm.CompletionAttempt] = []
-        
-        for requirement in requirements {
-            if let (cardIDs, usedCards) = findBestCardsForRequirement(
-                requirement: requirement,
-                availableCards: remainingCards
-            ) {
-                attempts.append(CompleteStageForm.CompletionAttempt(
-                    requirement: requirement,
-                    cardIDs: cardIDs
-                ))
-                // Remove used cards from remaining cards
-                let usedCardIDs = Set(usedCards.map(\.id))
-                remainingCards = remainingCards.filter { !usedCardIDs.contains($0.id) }
-            } else {
-                // Can't fulfill this requirement
-                return nil
-            }
-        }
-        
-        return attempts
-    }
-
-    private func findBestCardsForRequirement(
-        requirement: StageRequirement,
-        availableCards: [Card]
-    ) -> (cardIDs: [CardID], usedCards: [Card])? {
-        switch requirement {
-        case .numberSet(let count):
-            return findBestCardsForNumberSet(count: count, availableCards: availableCards)
-        case .run(let length):
-            return findBestCardsForRun(length: length, availableCards: availableCards)
-        case .colorSet(let count):
-            return findBestCardsForColorSet(count: count, availableCards: availableCards)
-        }
-    }
-    
-    private func findBestCardsForNumberSet(
-        count: Int,
-        availableCards: [Card]
-    ) -> (cardIDs: [CardID], usedCards: [Card])? {
-        // Group cards by number value
-        var numberGroups: [CardNumber: [Card]] = [:]
-        var wildCards: [Card] = []
-        
-        for card in availableCards {
-            if card.cardType.isWild {
-                wildCards.append(card)
-            } else if let number = card.cardType.numberValue {
-                numberGroups[number, default: []].append(card)
-            }
-        }
-        
-        // Find the number with the most cards
-        let bestNumber = numberGroups.max { $0.value.count < $1.value.count }?.key
-        
-        if let bestNumber = bestNumber,
-           let cards = numberGroups[bestNumber],
-           cards.count + wildCards.count >= count {
-            var selectedCards: [Card] = Array(cards.prefix(count))
-            let wildsNeeded = max(0, count - selectedCards.count)
-            selectedCards.append(contentsOf: wildCards.prefix(wildsNeeded))
-            
-            return (selectedCards.map(\.id), selectedCards)
-        }
-        
-        // If no number has enough cards, use wilds
-        if wildCards.count >= count {
-            let selectedWilds = Array(wildCards.prefix(count))
-            return (selectedWilds.map(\.id), selectedWilds)
-        }
-        
-        return nil
-    }
-    
-    private func findBestCardsForRun(
-        length: Int,
-        availableCards: [Card]
-    ) -> (cardIDs: [CardID], usedCards: [Card])? {
-        // Extract numbers and wilds
-        var numbers: [Int] = []
-        var wildCards: [Card] = []
-        
-        for card in availableCards {
-            if card.cardType.isWild {
-                wildCards.append(card)
-            } else if let number = card.cardType.numberValue {
-                numbers.append(number.rawValue)
-            }
-        }
-        
-        let uniqueNumbers = Array(Set(numbers)).sorted()
-        let wildCount = wildCards.count
-        
-        // Try to find the best run
-        if let bestRun = findBestRun(
-            numbers: uniqueNumbers,
-            wildcardsAvailable: wildCount,
-            requiredLength: length
-        ) {
-            var selectedCards: [Card] = []
-            var wildsUsed = 0
-            
-            // Add number cards for the run
-            for number in bestRun.numbers {
-                if let card = availableCards.first(where: {
-                    $0.cardType.numberValue?.rawValue == number
-                }) {
-                    selectedCards.append(card)
-                }
-            }
-            
-            // Add wild cards as needed
-            let wildsNeeded = bestRun.wildsNeeded
-            for i in 0..<wildsNeeded {
-                if i < wildCards.count {
-                    selectedCards.append(wildCards[i])
-                    wildsUsed += 1
-                }
-            }
-            
-            return (selectedCards.map(\.id), selectedCards)
-        }
-        
-        return nil
-    }
-    
-    private func findBestCardsForColorSet(
-        count: Int,
-        availableCards: [Card]
-    ) -> (cardIDs: [CardID], usedCards: [Card])? {
-        // Group cards by color
-        var colorGroups: [CardColor: [Card]] = [:]
-        var wildCards: [Card] = []
-        
-        for card in availableCards {
-            if card.cardType.isWild {
-                wildCards.append(card)
-            } else if let color = card.cardType.color {
-                colorGroups[color, default: []].append(card)
-            }
-        }
-        
-        // Find the color with the most cards
-        let bestColor = colorGroups.max { $0.value.count < $1.value.count }?.key
-        
-        if let bestColor = bestColor,
-           let cards = colorGroups[bestColor],
-           cards.count + wildCards.count >= count {
-            var selectedCards: [Card] = Array(cards.prefix(count))
-            let wildsNeeded = max(0, count - selectedCards.count)
-            selectedCards.append(contentsOf: wildCards.prefix(wildsNeeded))
-            
-            return (selectedCards.map(\.id), selectedCards)
-        }
-        
-        // If no color has enough cards, use wilds
-        if wildCards.count >= count {
-            let selectedWilds = Array(wildCards.prefix(count))
-            return (selectedWilds.map(\.id), selectedWilds)
-        }
-        
-        return nil
-    }
-    
-    private struct RunResult {
-        let numbers: [Int]
-        let wildsNeeded: Int
-    }
-    
-    private func findBestRun(
-        numbers: [Int],
-        wildcardsAvailable: Int,
-        requiredLength: Int
-    ) -> RunResult? {
-        guard !numbers.isEmpty else { return nil }
-        
-        var bestRun: RunResult? = nil
-        var maxLength = 0
-        
-        // Try starting from each number
-        for startIndex in 0..<numbers.count {
-            let startNumber = numbers[startIndex]
-            var currentRun: [Int] = [startNumber]
-            var wildsUsed = 0
-            
-            // Try to extend the run forward
-            for i in (startIndex + 1)..<numbers.count {
-                let nextNumber = numbers[i]
-                let gap = nextNumber - currentRun.last!
-                
-                if gap == 1 {
-                    // Consecutive number
-                    currentRun.append(nextNumber)
-                } else if gap > 1 && gap - 1 <= wildcardsAvailable - wildsUsed {
-                    // Can fill gap with wilds
-                    wildsUsed += (gap - 1)
-                    currentRun.append(nextNumber)
-                } else {
-                    // Gap too large, stop extending
-                    break
-                }
-            }
-            
-            // Try to extend backward with wilds
-            let minNumber = currentRun.first!
-            let backwardWilds = min(wildcardsAvailable - wildsUsed, max(0, minNumber - 1))
-            wildsUsed += backwardWilds
-            
-            // Try to extend forward with remaining wilds
-            let maxNumber = currentRun.last!
-            let forwardWilds = min(wildcardsAvailable - wildsUsed, max(0, 12 - maxNumber))
-            wildsUsed += forwardWilds
-            
-            let totalLength = currentRun.count + wildsUsed
-            
-            if totalLength >= requiredLength && totalLength > maxLength {
-                maxLength = totalLength
-                bestRun = RunResult(numbers: currentRun, wildsNeeded: wildsUsed)
-            }
-        }
-        
-        return bestRun
-    }
     
     // MARK: - Wild Card Pre-configuration
     

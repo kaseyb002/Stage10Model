@@ -88,14 +88,23 @@ extension Round {
         let cardsToAvoid = getCardsToAvoidDiscarding(playerHand: playerHand)
         
         // Find the best card to discard based on requirements
-        let bestCardToDiscard = findBestCardToDiscard(
-            availableCards: availableCards,
-            requirements: requirements,
-            cardsToAvoid: cardsToAvoid,
-            playerHand: playerHand
-        )
-        
-        try discard(bestCardToDiscard.id)
+        if playerHand.isRequirementsComplete {
+            let safeCards = availableCards.filter { !cardsToAvoid.contains($0.id) }
+            if safeCards.isEmpty {
+                try discard(availableCards.first!.id)
+            } else {
+                try discard(safeCards.first!.id)
+            }
+
+        } else {
+            let bestCardToDiscard = findBestCardToDiscard(
+                availableCards: availableCards,
+                requirements: requirements,
+                cardsToAvoid: cardsToAvoid,
+                playerHand: playerHand
+            )
+            try discard(bestCardToDiscard.id)
+        }
     }
     
     private func findBestCardToDiscard(

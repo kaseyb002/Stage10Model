@@ -57,6 +57,12 @@ extension Round {
             guard let card = cardsMap[cardID] else { return nil }
             return card.cardType.isWild ? nil : card
         }
+        guard availableCards.isEmpty == false else {
+            if let cardID: CardID = playerHand.cards.first {
+                try discard(cardID)
+            }
+            return
+        }
         // Rule 2: Prioritize discarding skip cards first
         let skipCards = availableCards.filter { $0.cardType.isSkip }
         if !skipCards.isEmpty {

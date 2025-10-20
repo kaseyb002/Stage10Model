@@ -16,6 +16,12 @@ extension Round {
                 case addCard(id: CardID, toCompletedRequirement: LogCompletedRequirement)
             }
             
+            public enum CodingKeys: String, CodingKey {
+                case playerID = "playerId"
+                case decision
+                case timestamp
+            }
+            
             public init(
                 playerID: String,
                 decision: Decision,
@@ -31,6 +37,11 @@ extension Round {
             public let completedRequirementID: String
             public let cardIDs: [CardID]
             
+            public enum CodingKeys: String, CodingKey {
+                case completedRequirementID = "completedRequirementId"
+                case cardIDs = "cardIds"
+            }
+
             public init(
                 completedRequirementID: String,
                 cardIDs: [CardID]

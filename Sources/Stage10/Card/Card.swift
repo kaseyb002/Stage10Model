@@ -29,7 +29,7 @@ public struct Card: Equatable, Codable {
     }
     
     public enum CardType: Equatable, Codable {
-        case skip(playerID: String?)
+        case skip(playerId: String?)
         case wild(WildCard)
         case number(NumberCard)
         

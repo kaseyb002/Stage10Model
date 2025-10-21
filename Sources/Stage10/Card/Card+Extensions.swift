@@ -20,19 +20,19 @@ extension [Card] {
         let skips: [Card] = [
             Card(
                 id: placeholderIndex,
-                cardType: .skip(playerID: nil)
+                cardType: .skip(playerId: nil)
             ),
             Card(
                 id: placeholderIndex,
-                cardType: .skip(playerID: nil)
+                cardType: .skip(playerId: nil)
             ),
             Card(
                 id: placeholderIndex,
-                cardType: .skip(playerID: nil)
+                cardType: .skip(playerId: nil)
             ),
             Card(
                 id: placeholderIndex,
-                cardType: .skip(playerID: nil)
+                cardType: .skip(playerId: nil)
             ),
         ]
         let allCards = numbers + numbers + wilds + wilds + skips
@@ -57,7 +57,7 @@ extension [Card] {
             cards.append(
                 .init(
                     id: id,
-                    cardType: .skip(playerID: nil)
+                    cardType: .skip(playerId: nil)
                 )
             )
         }

@@ -22,7 +22,7 @@ extension Round {
         
         switch card.cardType {
         case .skip:
-            card.cardType = .skip(playerID: skipPlayerID)
+            card.cardType = .skip(playerId: skipPlayerID)
             cardsMap[cardID] = card
             
         case .wild, .number:

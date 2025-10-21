@@ -13,7 +13,7 @@ public struct Card: Equatable, Codable {
     public mutating func setPlayerToSkip(playerID: String) throws {
         switch cardType {
         case .skip:
-            self.cardType = .skip(playerID: playerID)
+            self.cardType = .skip(playerId: playerID)
             
         case .wild, .number:
             throw Stage10Error.triedToSkipWithCardThatIsNotSkip

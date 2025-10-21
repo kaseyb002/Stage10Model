@@ -81,7 +81,7 @@ import Testing
             cards: [
                 Card(id: 1, cardType: .number(NumberCard(number: .two, color: .allCases.randomElement()!))),
                 Card(id: 2, cardType: .number(NumberCard(number: .three, color: .allCases.randomElement()!))),
-                Card(id: 0, cardType: .skip(playerID: nil)),
+                Card(id: 0, cardType: .skip(playerId: nil)),
                 Card(id: 3, cardType: .number(NumberCard(number: .five, color: .allCases.randomElement()!))),
                 Card(id: 4, cardType: .number(NumberCard(number: .six, color: .allCases.randomElement()!))),
                 Card(id: 5, cardType: .number(NumberCard(number: .seven, color: .allCases.randomElement()!))),

@@ -89,6 +89,9 @@ extension Stage10Error {
             
         case .missingAddPositionForRun:
             "You need to specify whether this card should be added to the beginning or end of the run."
+            
+        case .gameIsComplete:
+            "Game is complete."
         }
     }
 }

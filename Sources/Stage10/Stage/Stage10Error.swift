@@ -30,4 +30,5 @@ public enum Stage10Error: Error, Equatable {
     case invalidCard
     case cardsDoNotMakeRun
     case missingAddPositionForRun
+    case gameIsComplete
 }

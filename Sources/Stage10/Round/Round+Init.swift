@@ -37,12 +37,13 @@ extension Round {
     
     /// returns `nil` if game is complete
     public static func nextRound(
-        previous: Round
+        previous: Round,
+        newPlayers: [Player]? = nil
     ) throws -> Round? {
         struct GameIsComplete: Error {}
         
         func nextRoundPlayers() throws -> [Player] {
-            var players: [Player] = previous.playerHands.map(\.player)
+            var players: [Player] = (newPlayers ?? previous.playerHands.map(\.player))
             for i in 0 ..< players.count {
                 if previous.playerHands[i].isRequirementsComplete {
                     if let nextStage: Stage = players[i].stage.next {

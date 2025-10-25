@@ -4,6 +4,9 @@ extension Round {
     public struct Log: Equatable, Codable {
         public var actions: [PlayerAction] = []
         
+        /// Maximum number of actions to keep in the log to prevent unbounded growth
+        private static let maxActions = 200
+        
         public struct PlayerAction: Equatable, Codable {
             public let playerID: String
             public let decision: Decision
@@ -60,6 +63,14 @@ extension Round {
             actions: [PlayerAction] = []
         ) {
             self.actions = actions
+        }
+        
+        /// Adds an action to the log, keeping only the most recent maxActions entries
+        public mutating func addAction(_ action: PlayerAction) {
+            actions.append(action)
+            if actions.count > Self.maxActions {
+                actions.removeFirst(actions.count - Self.maxActions)
+            }
         }
     }
 }

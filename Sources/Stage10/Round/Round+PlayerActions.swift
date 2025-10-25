@@ -100,7 +100,7 @@ extension Round {
             break
         }
         
-        log.actions.append(
+        log.addAction(
             .init(
                 playerID: currentPlayerID,
                 decision: .discard(cardId: cardID)
@@ -185,7 +185,7 @@ extension Round {
 
         playerHands[currentPlayerHandIndex].completed = completedRequirements
         
-        log.actions.append(
+        log.addAction(
             .init(
                 playerID: playerHands[currentPlayerHandIndex].player.id,
                 decision: .laydown(completedRequirements.map { .init(completedRequirement: $0) })
@@ -215,7 +215,7 @@ extension Round {
             cardID = deck.removeLast()
         }
         playerHands[currentPlayerHandIndex].cards.append(cardID)
-        log.actions.append(
+        log.addAction(
             .init(
                 playerID: playerHands[currentPlayerHandIndex].player.id,
                 decision: .pickup(cardId: cardID, fromDiscardPile: fromDiscardPile)
@@ -275,7 +275,7 @@ extension Round {
         }
         playerHands[belongingToPlayerIndex].completed[completedRequirementIndex] = updatedCompletedRequirement
         playerHands[currentPlayerHandIndex].cards.removeAll(where: { form.cardID == $0 })
-        log.actions.append(
+        log.addAction(
             .init(
                 playerID: playerHands[currentPlayerHandIndex].player.id,
                 decision: .addCard(id: card.id, toCompletedRequirement: .init(completedRequirement: originalCompletedRequirement))

@@ -44,8 +44,17 @@ extension Round {
         
         func nextRoundPlayers() throws -> [Player] {
             var players: [Player] = (newPlayers ?? previous.playerHands.map(\.player))
+            
+            // Create a map of player IDs who completed their requirements
+            let completedPlayerIDs = Set(
+                previous.playerHands
+                    .filter { $0.isRequirementsComplete }
+                    .map { $0.player.id }
+            )
+            
+            // Update stages for players who completed their requirements, matching by ID
             for i in 0 ..< players.count {
-                if previous.playerHands[i].isRequirementsComplete {
+                if completedPlayerIDs.contains(players[i].id) {
                     if let nextStage: Stage = players[i].stage.next {
                         players[i].stage = nextStage
                     } else {

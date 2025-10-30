@@ -488,6 +488,134 @@ import Testing
     print(round.logValue)
 }
 
+@Test func exchangeForWild() async throws {
+    // Create a round with two players
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    
+    // Get initial state
+    let player1Index: Int = 0
+    let initialHandCount: Int = round.playerHands[player1Index].cards.count
+    let initialDiscardPileCount: Int = round.discardPile.count
+    
+    // Get a card from player 1's hand to exchange
+    let cardToExchange: CardID = round.playerHands[player1Index].cards[0]
+    let cardToExchangeType: Card.CardType? = round.cardsMap[cardToExchange]?.cardType
+    
+    // Exchange the card for a wild
+    try round.exchangeForWild(cardID: cardToExchange, playerID: "player1")
+    
+    // Verify the hand count remains the same (removed one, added one)
+    #expect(round.playerHands[player1Index].cards.count == initialHandCount)
+    
+    // Verify the original card is no longer in the player's hand
+    #expect(!round.playerHands[player1Index].cards.contains(cardToExchange))
+    
+    // Verify the original card was added to the discard pile (at position 0, bottom of deck)
+    #expect(round.discardPile.count == initialDiscardPileCount + 1)
+    #expect(round.discardPile[0] == cardToExchange)
+    
+    // Get the new wild card (last card in player's hand)
+    let newWildCardID: CardID = round.playerHands[player1Index].cards.last!
+    let newWildCard: Card? = round.cardsMap[newWildCardID]
+    
+    // Verify the new wild card exists and has correct properties
+    #expect(newWildCard != nil)
+    if let wildCard = newWildCard {
+        #expect(wildCard.cardType.isWild)
+        if case .wild(let wildCardData) = wildCard.cardType {
+            #expect(wildCardData.color == .blue)
+            #expect(wildCardData.usedAs == nil)
+        } else {
+            Issue.record("Expected wild card type")
+        }
+    }
+    
+    // Verify the exchanged card is still in cardsMap (it should be preserved)
+    #expect(round.cardsMap[cardToExchange] != nil)
+    #expect(round.cardsMap[cardToExchange]?.cardType == cardToExchangeType)
+}
+
+@Test func exchangeForWildInvalidPlayer() async throws {
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    
+    let cardToExchange: CardID = round.playerHands[0].cards[0]
+    
+    // Try to exchange with an invalid player ID
+    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {
+        try round.exchangeForWild(cardID: cardToExchange, playerID: "nonexistent")
+    }
+}
+
+@Test func exchangeForWildInvalidCard() async throws {
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    
+    // Try to exchange with a card ID that doesn't exist in the player's hand
+    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {
+        try round.exchangeForWild(cardID: 99999, playerID: "player1")
+    }
+}
+
+@Test func exchangeForWildDifferentPlayers() async throws {
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    
+    // Get a card from player 1's hand
+    let player1CardID: CardID = round.playerHands[0].cards[0]
+    
+    // Try to exchange player 1's card using player 2's ID
+    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {
+        try round.exchangeForWild(cardID: player1CardID, playerID: "player2")
+    }
+}
+
+@Test func exchangeForWildUniqueIDs() async throws {
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    
+    // Exchange multiple cards to ensure each wild gets a unique ID
+    let card1: CardID = round.playerHands[0].cards[0]
+    let card2: CardID = round.playerHands[0].cards[1]
+    
+    try round.exchangeForWild(cardID: card1, playerID: "player1")
+    let wild1ID: CardID = round.playerHands[0].cards.last!
+    
+    try round.exchangeForWild(cardID: card2, playerID: "player1")
+    let wild2ID: CardID = round.playerHands[0].cards.last!
+    
+    // Verify both wilds have unique IDs
+    #expect(wild1ID != wild2ID)
+    #expect(round.cardsMap[wild1ID] != nil)
+    #expect(round.cardsMap[wild2ID] != nil)
+}
+
 private func loadJSON(fromFile name: String) throws -> Data {
     guard let url: URL = Bundle.module.url(forResource: name, withExtension: "json") else {
         throw FileError.jsonFileNotFound(name: name)

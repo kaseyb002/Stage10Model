@@ -238,11 +238,20 @@ extension Round {
     private func findBestSkipTarget() -> String? {
         guard let currentPlayerHand = self.currentPlayerHand else { return nil }
         
-        // Target the player with the fewest cards (most likely to go out soon)
-        let otherPlayers = playerHands.filter { $0.player.id != currentPlayerHand.player.id }
-        let targetPlayer = otherPlayers.min { $0.cards.count < $1.cards.count }
+        let otherPlayerIDs: [String] = playerHands
+            .filter { $0.player.id != currentPlayerHand.player.id }
+            .sorted(by: { $0.player.points < $1.player.points })
+            .sorted(by: { $0.player.stage.numberValue > $1.player.stage.numberValue })
+            .map { $0.player.id }
         
-        return targetPlayer?.player.id
+        if let firstTargetID: String = otherPlayerIDs.first,
+           firstTargetID == "me",
+           (skipQueue[firstTargetID] ?? .zero) > .zero,
+           otherPlayerIDs.count > 1 {
+            return otherPlayerIDs.first(where: { [firstTargetID, currentPlayerHand.player.id].contains($0) == false })
+        } else {
+            return otherPlayerIDs.first
+        }
     }
 
     // MARK: - Laydown Decision

@@ -246,7 +246,7 @@ extension Round {
         
         if let firstTargetID: String = otherPlayerIDs.first,
            firstTargetID == "me",
-           (skipQueue[firstTargetID] ?? .zero) > .zero,
+           skipQueue[firstTargetID] != nil,
            otherPlayerIDs.count > 1 {
             return otherPlayerIDs.first(where: { [firstTargetID, currentPlayerHand.player.id].contains($0) == false })
         } else {

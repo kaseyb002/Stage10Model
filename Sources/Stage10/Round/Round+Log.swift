@@ -1,18 +1,18 @@
 import Foundation
 
 extension Round {
-    public struct Log: Equatable, Codable {
+    public struct Log: Equatable, Codable, Sendable {
         public var actions: [PlayerAction] = []
         
         /// Maximum number of actions to keep in the log to prevent unbounded growth
         private static let maxActions = 200
         
-        public struct PlayerAction: Equatable, Codable {
+        public struct PlayerAction: Equatable, Codable, Sendable {
             public let playerID: String
             public let decision: Decision
             public let timestamp: Date
             
-            public enum Decision: Equatable, Codable {
+            public enum Decision: Equatable, Codable, Sendable {
                 case pickup(cardId: CardID, fromDiscardPile: Bool)
                 case laydown([LogCompletedRequirement])
                 case discard(cardId: CardID)
@@ -36,7 +36,7 @@ extension Round {
             }
         }
         
-        public struct LogCompletedRequirement: Equatable, Codable {
+        public struct LogCompletedRequirement: Equatable, Codable, Sendable {
             public let completedRequirementID: String
             public let cardIDs: [CardID]
             

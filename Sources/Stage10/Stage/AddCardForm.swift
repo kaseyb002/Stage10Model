@@ -1,12 +1,12 @@
 import Foundation
 
-public struct AddCardForm: Equatable, Codable {
+public struct AddCardForm: Equatable, Codable, Sendable {
     public let cardID: CardID
     public let completedRequirementID: String
     public let belongingToPlayerID: String
     public let attempt: Attempt
     
-    public enum Attempt: Equatable, Codable {
+    public enum Attempt: Equatable, Codable, Sendable {
         case addToSet
         case addToRun(position: Run.AddPosition)
     }

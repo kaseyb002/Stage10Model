@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Stage: Hashable, CaseIterable, Codable {
+public enum Stage: Hashable, CaseIterable, Codable, Sendable {
     case one
     case two
     case three

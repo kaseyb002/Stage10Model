@@ -511,7 +511,7 @@ extension Round {
         return nil
     }
     
-    private struct RunResult {
+    private struct RunResult: Sendable {
         let numbers: [Int]
         let wildsNeeded: Int
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Stage10Error: Error, Equatable {
+public enum Stage10Error: Error, Equatable, Sendable {
     case notEnoughPlayers
     case tooManyPlayers
     case attemptedToActWithNoCurrentPlayer

@@ -2,7 +2,7 @@ import Foundation
 
 public typealias CardID = Int
 
-public struct Card: Equatable, Codable {
+public struct Card: Equatable, Codable, Sendable {
     public let id: CardID
     public var cardType: CardType
     
@@ -28,7 +28,7 @@ public struct Card: Equatable, Codable {
         self.cardType = cardType
     }
     
-    public enum CardType: Equatable, Codable {
+    public enum CardType: Equatable, Codable, Sendable {
         case skip(playerId: String?)
         case wild(WildCard)
         case number(NumberCard)

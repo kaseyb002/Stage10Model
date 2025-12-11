@@ -1,10 +1,10 @@
 import Foundation
 
-public struct CompletedRequirement: Equatable, Codable {
+public struct CompletedRequirement: Equatable, Codable, Sendable {
     public let id: String
     public var requirementType: RequirementType
     
-    public enum RequirementType: Equatable, Codable {
+    public enum RequirementType: Equatable, Codable, Sendable {
         case numberSet(NumberSet)
         case colorSet(ColorSet)
         case run(Run)

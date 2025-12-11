@@ -1,6 +1,6 @@
 import Foundation
 
-public struct WildCard: Equatable, Codable {
+public struct WildCard: Equatable, Codable, Sendable {
     public let color: CardColor
     public var usedAs: UsedAs?
     

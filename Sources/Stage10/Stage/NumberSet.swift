@@ -1,6 +1,6 @@
 import Foundation
 
-public struct NumberSet: Equatable, Codable {
+public struct NumberSet: Equatable, Codable, Sendable {
     public let requiredCount: Int
     public let number: CardNumber
     public private(set) var cards: [Card]

@@ -40,7 +40,7 @@ extension Round {
         previous: Round,
         newPlayers: [Player]? = nil
     ) throws -> Round? {
-        struct GameIsComplete: Error {}
+        struct GameIsComplete: Error, Sendable {}
         
         func nextRoundPlayers() throws -> [Player] {
             var players: [Player] = (newPlayers ?? previous.playerHands.map(\.player))

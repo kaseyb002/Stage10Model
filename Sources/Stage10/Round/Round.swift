@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Round: Equatable, Codable {
+public struct Round: Equatable, Codable, Sendable {
     // MARK: - Initialized Properties
     public let id: String
     public let started: Date
@@ -17,12 +17,12 @@ public struct Round: Equatable, Codable {
     public internal(set) var log: Log = .init()
     public internal(set) var ended: Date?
     
-    public enum State: Equatable, Codable {
+    public enum State: Equatable, Codable, Sendable {
         case waitingForPlayerToAct(playerId: String, discardState: DiscardState)
         case roundComplete
         case gameComplete(winner: Player)
         
-        public enum DiscardState: Hashable, Codable {
+        public enum DiscardState: Hashable, Codable, Sendable {
             case needsToPickUp
             case needsToDiscard
         }

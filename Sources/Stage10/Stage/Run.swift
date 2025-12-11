@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Run: Equatable, Codable {
+public struct Run: Equatable, Codable, Sendable {
     public let requiredLength: Int
     public private(set) var cards: [Card]
     
@@ -21,7 +21,7 @@ public struct Run: Equatable, Codable {
         )
     }
     
-    public enum AddPosition: Equatable, Codable {
+    public enum AddPosition: Equatable, Codable, Sendable {
         case beginning
         case end
     }

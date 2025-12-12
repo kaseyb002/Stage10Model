@@ -69,18 +69,7 @@ private extension [Card] {
                 guard let nextMinValidCardNumber else {
                     throw Stage10Error.runReachedEnd
                 }
-                switch wildCard.usedAs {
-                case .number(let cardNumber):
-                    guard cardNumber == nextMinValidCardNumber else {
-                        throw Stage10Error.invalidCard
-                    }
-                    
-                case .color:
-                    throw Stage10Error.invalidCard
-
-                case nil:
-                    try updatedWild.use(as: .number(nextMinValidCardNumber))
-                }
+                try updatedWild.use(as: .number(nextMinValidCardNumber))
                 var updatedCard: Card = card
                 updatedCard.cardType = .wild(updatedWild)
                 insert(updatedCard, at: .zero)
@@ -89,18 +78,7 @@ private extension [Card] {
                 guard let nextMaxValidCardNumber else {
                     throw Stage10Error.runReachedEnd
                 }
-                switch wildCard.usedAs {
-                case .number(let cardNumber):
-                    guard cardNumber == nextMaxValidCardNumber else {
-                        throw Stage10Error.invalidCard
-                    }
-                    
-                case .color:
-                    throw Stage10Error.invalidCard
-
-                case nil:
-                    try updatedWild.use(as: .number(nextMaxValidCardNumber))
-                }
+                try updatedWild.use(as: .number(nextMaxValidCardNumber))
                 var updatedCard: Card = card
                 updatedCard.cardType = .wild(updatedWild)
                 append(updatedCard)

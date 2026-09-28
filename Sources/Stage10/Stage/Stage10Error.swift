@@ -31,4 +31,6 @@ public enum Stage10Error: Error, Equatable, Sendable {
     case cardsDoNotMakeRun
     case missingAddPositionForRun
     case gameIsComplete
+    case notCurrentPlayer
+    case cannotExchangeWildForWild
 }

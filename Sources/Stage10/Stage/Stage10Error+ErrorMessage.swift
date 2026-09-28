@@ -92,6 +92,12 @@ extension Stage10Error {
             
         case .gameIsComplete:
             "Game is complete."
+
+        case .notCurrentPlayer:
+            "It is not this player's turn."
+
+        case .cannotExchangeWildForWild:
+            "A wild card cannot be exchanged for another wild card."
         }
     }
 }

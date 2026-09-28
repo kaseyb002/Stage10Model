@@ -239,19 +239,27 @@ extension Round {
         guard let currentPlayerHand = self.currentPlayerHand else { return nil }
         
         let otherPlayerIDs: [String] = playerHands
-            .filter { $0.player.id != currentPlayerHand.player.id }
+            .filter { hand in
+                hand.player.id != currentPlayerHand.player.id
+                    && isSkipProtected(hand) == false
+            }
             .sorted(by: { $0.player.points < $1.player.points })
             .sorted(by: { $0.player.stage.numberValue > $1.player.stage.numberValue })
-            .map { $0.player.id }
+            .map(\.player.id)
         
         if let firstTargetID: String = otherPlayerIDs.first,
            firstTargetID == "me",
            skipQueue[firstTargetID] != nil,
            otherPlayerIDs.count > 1 {
-            return otherPlayerIDs.first(where: { [firstTargetID, currentPlayerHand.player.id].contains($0) == false })
+            return otherPlayerIDs.first(where: { $0 != firstTargetID })
         } else {
             return otherPlayerIDs.first
         }
+    }
+    
+    /// The human is never skipped while they are on stage one.
+    private func isSkipProtected(_ hand: PlayerHand) -> Bool {
+        hand.player.id == "me" && hand.player.stage == .one
     }
 
     // MARK: - Laydown Decision

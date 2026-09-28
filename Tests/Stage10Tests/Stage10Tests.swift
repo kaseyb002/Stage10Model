@@ -504,7 +504,11 @@ import Testing
     let initialDiscardPileCount: Int = round.discardPile.count
     
     // Get a card from player 1's hand to exchange
-    let cardToExchange: CardID = round.playerHands[player1Index].cards[0]
+    let cardToExchange: CardID = try #require(
+        round.playerHands[player1Index].cards.first(where: {
+            round.cardsMap[$0]?.cardType.isWild == false
+        })
+    )
     let cardToExchangeType: Card.CardType? = round.cardsMap[cardToExchange]?.cardType
     
     // Exchange the card for a wild
@@ -553,7 +557,7 @@ import Testing
     let cardToExchange: CardID = round.playerHands[0].cards[0]
     
     // Try to exchange with an invalid player ID
-    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {
+    #expect(throws: Stage10Error.notCurrentPlayer) {
         try round.exchangeForWild(cardID: cardToExchange, playerID: "nonexistent")
     }
 }
@@ -586,8 +590,24 @@ import Testing
     let player1CardID: CardID = round.playerHands[0].cards[0]
     
     // Try to exchange player 1's card using player 2's ID
-    #expect(throws: Stage10Error.cardDoesNotExistInPlayersHand) {
+    #expect(throws: Stage10Error.notCurrentPlayer) {
         try round.exchangeForWild(cardID: player1CardID, playerID: "player2")
+    }
+}
+
+@Test func exchangeExistingWildForWildIsRejected() async throws {
+    var round: Round = try .init(
+        cookedDeck: .deck(),
+        players: [
+            .fake(id: "player1", name: "Player 1", points: .zero, stage: .one),
+            .fake(id: "player2", name: "Player 2", points: .zero, stage: .one),
+        ]
+    )
+    let wildID = try #require(round.cardsMap.first(where: { $0.value.cardType.isWild })?.key)
+    round.playerHands[0].cards[0] = wildID
+
+    #expect(throws: Stage10Error.cannotExchangeWildForWild) {
+        try round.exchangeForWild(cardID: wildID, playerID: "player1")
     }
 }
 
@@ -601,8 +621,11 @@ import Testing
     )
     
     // Exchange multiple cards to ensure each wild gets a unique ID
-    let card1: CardID = round.playerHands[0].cards[0]
-    let card2: CardID = round.playerHands[0].cards[1]
+    let exchangeableCards = round.playerHands[0].cards.filter {
+        round.cardsMap[$0]?.cardType.isWild == false
+    }
+    let card1: CardID = try #require(exchangeableCards.first)
+    let card2: CardID = try #require(exchangeableCards.dropFirst().first)
     
     try round.exchangeForWild(cardID: card1, playerID: "player1")
     let wild1ID: CardID = round.playerHands[0].cards.last!
